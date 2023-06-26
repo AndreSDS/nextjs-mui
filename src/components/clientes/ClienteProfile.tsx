@@ -1,26 +1,24 @@
 'use client'
 
 import { Box, Stack, Typography, colors } from '@mui/material'
+import { queryClient, useMutation } from '@/lib/queryClient'
 import { Cliente } from '@/utils/types'
 import { ClienteForm } from './ClienteForm'
-import { queryClient, useMutation } from '@/lib/queryClient'
-import { updateCliente } from '@/resources/cliente'
 import { Profile } from '@/components/Profile'
 import { useDataStored } from '@/hooks/useDataStored'
-import { useMutateData } from '@/hooks/useMutateData'
+import { updateCliente } from '@/resources/cliente'
 
 type Props = {
   id: string
 }
 
 export function ClienteProfile({ id }: Props) {
-  const { dataStored: cliente } = useDataStored({
+  const { dataStored: cliente, mutateDataStored } = useDataStored({
     id: Number(id),
     key: 'clientes',
     dataType: {} as Cliente,
+    fnToMutate: updateCliente
   })
-
-  const { mutate } = useMutateData('clientes', {} as Cliente, updateCliente)
 
   const {
     nome,
@@ -34,7 +32,7 @@ export function ClienteProfile({ id }: Props) {
   } = cliente
 
   const onSubmit = async (data: Cliente) => {
-    const cliente = mutate(data)
+    const cliente = mutateDataStored(data)
   }
 
   return (

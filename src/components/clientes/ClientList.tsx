@@ -7,15 +7,10 @@ import { Cliente } from '@/utils/types'
 import { Header } from '@/components/Header'
 import { Modal } from '@/components/Modal'
 import { ClienteForm } from '@/components/clientes/ClienteForm'
-import {
-  queryClient,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@/lib/queryClient'
 import { DataList } from '../DataList'
 import { createCliente, getClientes } from '@/resources/cliente'
-import { useMutateData } from '@/hooks/useMutateData'
+import { useFetchData } from '@/hooks/useFetchData'
+import { useDataStored } from '@/hooks/useDataStored'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -36,19 +31,15 @@ const columns: GridColDef[] = [
 
 export function ClientList() {
   const [open, setOpen] = useState(false)
-  const { data: clientes, isFetching } = useQuery({
-    queryKey: ['clientes'],
-    queryFn: getClientes,
-  })
-
-  const { mutate } = useMutateData('clientes', {} as Cliente, createCliente)
+  const { data: clientes, isFetching } = useFetchData( 'clientes', getClientes )
+  const { mutateDataStored } = useDataStored('clientes', {} as Cliente, createCliente)
 
   function handleOpenModal() {
     setOpen(!open)
   }
 
   const onSubmit = async (data: Cliente) => {
-    const cliente = mutate(data)
+    const cliente = mutateDataStored(data)
 
     handleOpenModal()
   }
