@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { CondutorProfile } from '@/components/condutores/CondutorProfile'
-import { useDataStored } from '@/hooks/useDataStored'
+import { getCondutorById } from '@/resources/condutor'
 import { Condutor } from '@/utils/types'
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
 }
 
 export async function generateMetadata({ params: { id } }: Props) {
-    const { dataStored: condutor } = useDataStored({ key: 'condutores', id: Number(id), dataType: {} as Condutor })
+    const condutor = await getCondutorById(id)
 
     if (!condutor.id) {
         return {
