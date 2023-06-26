@@ -76,7 +76,7 @@ export function CondutoresList() {
         hasButton
       />
 
-      <DataList data={condutores} columns={columns} />
+      <DataList route="condutores" data={condutores} columns={columns} />
     </Box>
   )
 }

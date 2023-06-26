@@ -6,17 +6,18 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { Cliente, Condutor, Deslocamento, Veiculo } from '@/utils/types'
 
 type Props = {
+  route: string;
   data: Cliente[] | Condutor[] | Deslocamento[] | Veiculo[] | undefined
   columns: GridColDef[]
 }
 
-export function DataList({ data, columns }: Props) {
+export function DataList({ route, data, columns }: Props) {
   const router = useRouter()
 
   return (
     <Paper>
       <DataGrid
-        onCellClick={(row) => router.push(`/clientes/${row.id}`)}
+        onCellClick={(row) => router.push(`/${route}/${row.id}`)}
         rows={data || []}
         columns={columns}
         pagination

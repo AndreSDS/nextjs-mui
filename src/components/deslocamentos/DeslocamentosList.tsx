@@ -86,7 +86,7 @@ export function DeslocamentosList() {
         hasButton
       />
 
-      <DataList data={deslocamentos} columns={columns} />
+      <DataList route="deslocamentos" data={deslocamentos} columns={columns} />
     </Box>
   )
 }

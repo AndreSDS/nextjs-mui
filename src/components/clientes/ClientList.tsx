@@ -81,7 +81,7 @@ export function ClientList() {
         hasButton
       />
 
-      <DataList data={clientes} columns={columns} />
+      <DataList route="clientes" data={clientes} columns={columns} />
     </Box>
   )
 }
