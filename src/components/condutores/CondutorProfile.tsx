@@ -12,7 +12,7 @@ type Props = {
   id: string
 }
 
-export function CondutorInfo({ id }: Props) {
+export function CondutorProfile({ id }: Props) {
   const { dataStored: condutor } = useDataStored({
     id: Number(id),
     key: 'condutores',
