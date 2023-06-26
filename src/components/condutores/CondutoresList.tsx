@@ -10,7 +10,8 @@ import { Header } from '@/components/Header'
 import { DataList } from '@/components/DataList'
 import { createCondutor, getCondutores } from '@/resources/condutor'
 import { CondutorForm } from '@/components/condutores/CondutorForm'
-import { useMutateData } from '@/hooks/useMutateData'
+import { useFetchData } from '@/hooks/useFetchData'
+import { useDataStored } from '@/hooks/useDataStored'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -30,20 +31,18 @@ const columns: GridColDef[] = [
 
 export function CondutoresList() {
   const [open, setOpen] = useState(false)
-  const { data: condutores, isFetching } = useQuery({
-    queryKey: ['condutores'],
-    queryFn: getCondutores,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-  })
-
-  const { mutate } = useMutateData('condutores', {} as Condutor, createCondutor)
+  const { data: condutores, isFetching } = useFetchData(
+    'condutores',
+    getCondutores
+  )
+  const { mutateDataStored } = useDataStored('condutores', {} as Condutor, createCondutor)
 
   function handleOpenModal() {
     setOpen(!open)
   }
 
   const onSubmit = async (data: Condutor) => {
-    const condutor = mutate(data)
+    const condutor = mutateDataStored(data)
 
     handleOpenModal()
   }

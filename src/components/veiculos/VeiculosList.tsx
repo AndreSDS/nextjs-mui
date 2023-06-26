@@ -10,7 +10,8 @@ import { DataList } from '@/components/DataList'
 import { VeiculoForm } from '@/components/veiculos/VeiculoForm'
 import { Veiculo } from '@/utils/types'
 import { createVeiculo, getVeiculos } from '@/resources/veiculo'
-import { useMutateData } from '@/hooks/useMutateData'
+import { useFetchData } from '@/hooks/useFetchData'
+import { useDataStored } from '@/hooks/useDataStored'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -38,19 +39,18 @@ const columns: GridColDef[] = [
 
 export function VeiculosList() {
   const [open, setOpen] = useState(false)
-  const { data: veiculos, isFetching } = useQuery({
-    queryKey: ['veiculos'],
-    queryFn: getVeiculos,
-  })
-
-  const { mutate } = useMutateData('veiculo', {} as Veiculo, createVeiculo)
+  const { data: veiculos, isFetching } = useFetchData(
+    'veiculos',
+    getVeiculos
+  )
+  const { mutateDataStored } = useDataStored('veiculo', {} as Veiculo, createVeiculo)
 
   function handleOpenModal() {
     setOpen(!open)
   }
 
   const onSubmit = async (data: Veiculo) => {
-    const cliente = mutate(data)
+    const cliente = mutateDataStored(data)
 
     handleOpenModal()
   }

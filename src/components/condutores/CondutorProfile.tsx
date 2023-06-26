@@ -6,20 +6,18 @@ import { CondutorForm } from '@/components/condutores/CondutorForm'
 import { updateCondutor } from '@/resources/condutor'
 import { Profile } from '../Profile'
 import { useDataStored } from '@/hooks/useDataStored'
-import { useMutateData } from '@/hooks/useMutateData'
 
 type Props = {
   id: string
 }
 
 export function CondutorProfile({ id }: Props) {
-  const { dataStored: condutor } = useDataStored({
+  const { dataStored: condutor, mutateDataStored } = useDataStored({
     id: Number(id),
     key: 'condutores',
     dataType: {} as Condutor,
+    fnToMutate: updateCondutor
   })
-
-  const { mutate } = useMutateData('condutores', {} as Condutor, updateCondutor)
 
   const {
     nome,
@@ -29,7 +27,7 @@ export function CondutorProfile({ id }: Props) {
   } = condutor
 
   const onSubmit = async (data: Condutor) => {
-    const condutor = mutate(data)
+    const condutor = mutateDataStored(data)
   }
 
   return (
