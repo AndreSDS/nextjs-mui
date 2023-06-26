@@ -9,30 +9,20 @@ import { Header } from '@/components/Header'
 import { DataList } from '@/components/DataList'
 import { createDeslocamento, getDeslocamentos } from '@/resources/deslocamentos'
 import { DeslocamentoForm } from '@/components/deslocamentos/DeslocamentoForm'
-import { useMutateData } from '@/hooks/useMutateData'
 import { useFetchData } from '@/hooks/useFetchData'
+import { useDataStored } from '@/hooks/useDataStored'
 
 const columns: GridColDef[] = [
-  { field: 'id', headerName: 'ID' },
-  { field: 'kmInicial', headerName: 'Km Inicial', flex: 1 },
-  { field: 'kmFinal', headerName: 'Km Final', flex: 1 },
+  { field: 'id', headerName: 'ID', flex: 0.7 },
+  { field: 'kmInicial', headerName: 'Km Inicial', flex: 0.7 },
+  { field: 'kmFinal', headerName: 'Km Final', flex: 0.7 },
   {
     field: 'inicioDeslocamento',
     headerName: 'Início do Deslocamento',
     flex: 1,
   },
   { field: 'fimDeslocamento', headerName: 'Fim do Deslocamento', flex: 1 },
-  { field: 'motivo', headerName: 'Motivo', flex: 1 },
-  {
-    field: 'idCondutor',
-    headerName: 'Condutor',
-    flex: 1,
-  },
-  {
-    field: 'idCliente',
-    headerName: 'Cliente',
-    flex: 1,
-  },
+  { field: 'motivo', headerName: 'Motivo', flex: 1.5 },
 ]
 
 export function DeslocamentosList() {
@@ -42,7 +32,7 @@ export function DeslocamentosList() {
     getDeslocamentos,
   )
 
-  const { mutate } = useMutateData(
+  const { mutateDataStored } = useDataStored(
     'condutores',
     {} as Deslocamento,
     createDeslocamento,
@@ -53,7 +43,7 @@ export function DeslocamentosList() {
   }
 
   const onSubmit = async (data: Deslocamento) => {
-    const deslocamento = mutate(data)
+    const deslocamento = mutateDataStored(data)
 
     handleOpenModal()
   }

@@ -9,11 +9,11 @@ type Props = {
 }
 
 export function DeslocamentoDetail({ id }: Props) {
-  const [dataStored, updateDataStored] = useDataStored({
+  const [dataStored, mutateDataStored] = useDataStored({
     id,
     key: 'deslocamentos',
-    fnToUpdate: updateDeslocamento,
     dataType: {} as Deslocamento,
+    fnToMutate: updateDeslocamento
   })
 
   return <div>DeslocamentoDetail</div>
