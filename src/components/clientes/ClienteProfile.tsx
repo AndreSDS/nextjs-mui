@@ -13,7 +13,7 @@ type Props = {
   id: string
 }
 
-export function ClienteInfo({ id }: Props) {
+export function ClienteProfile({ id }: Props) {
   const { dataStored: cliente } = useDataStored({
     id: Number(id),
     key: 'clientes',

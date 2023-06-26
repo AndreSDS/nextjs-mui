@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { Cliente } from '@/utils/types'
-import { ClienteInfo } from '@/components/clientes/ClienteProfile'
+import { ClienteProfile } from '@/components/clientes/ClienteProfile'
 import { getClienteById } from '@/resources/cliente'
 
 type Props = {
@@ -26,5 +26,5 @@ export async function generateMetadata({ params: { id } }: Props) {
 export default async function Cliente({ params: { id } }: Props) {
   if (!id) notFound()
 
-  return <ClienteInfo id={id} />
+  return <ClienteProfile id={id} />
 }
