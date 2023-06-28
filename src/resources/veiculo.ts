@@ -1,69 +1,58 @@
 import { api } from "@/lib/api";
-import { Cliente, Veiculo } from "@/utils/types";
+import { Veiculo } from "@/utils/types";
 
 export async function getVeiculos(): Promise<Veiculo[]> {
-    const response = await api.get('/Veiculo')
+    const response = await api.get('/Veiculo');
 
-    if (response.status === 404) {
-        return [];
+    if (response.status !== 200) {
+        return [] as Veiculo[];
     }
 
-    return response.data;
+   return response.data;
 }
 
 export async function getVeiculoById(id: string): Promise<Veiculo> {
-    const response = await api.get(`/Veiculo/${id}`);
+   const response = await api.get(`/Veiculo/${id}`);
+   
+   if (response.status !== 200) {
+         return {} as Veiculo;
+   }
 
-    if (response.status === 404) {
-        return {} as Veiculo;
-    }
-
-    return response.data;
+   return response.data;
 }
 
 export async function createVeiculo(veiculo: Veiculo): Promise<Veiculo> {
-    const response = await api.post('/Veiculo', {
-        body: JSON.stringify(veiculo)
-    })
+  const response = await api.post('/Veiculo', veiculo);
 
-    if (response.status === 404) {
-        return {} as Veiculo;
-    }
+   if (response.status !== 200) {
+         return {} as Veiculo;
+   }
 
-    const { data } = response;
-
-    const veiculoCriado: Veiculo = {
-        id: data,
-        ...veiculo,
-    }
-
-    return veiculoCriado;
+   return response.data;
 }
 
 export async function updateVeiculo(veiculo: Veiculo): Promise<Veiculo> {
-    const response = await api.put(`/Veiculo/${veiculo.id}`, {
-        body: JSON.stringify(veiculo)
-    })
-
-    if (response.status === 404) {
-        return {} as Veiculo;
-    }
-
-    return veiculo;
+      const response = await api.put(`/Veiculo/${veiculo.id}`, veiculo);
+   
+      if (response.status !== 200) {
+         return {} as Veiculo;
+      }
+   
+      return response.data;
 }
 
 export async function deleteVeiculo(id: string): Promise<{
-    message: string
+   message: string
 }> {
-    const response = await api.delete(`/Veiculo/${id}`)
+   const response = await api.delete(`/Veiculo/${id}`);
+   
+   if (response.status !== 200) {
+         return {
+            message: 'Erro ao deletar veículo'
+         };
+   }
 
-    if (response.status === 404) {
-        return {
-            message: 'Veiculo não encontrado'
-        };
-    }
-
-    return {
-        message: 'Veiculo excluído com sucesso'
-    }
+   return {
+      message: 'Veículo deletado com sucesso'
+   };
 }

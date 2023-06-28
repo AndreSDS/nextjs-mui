@@ -1,69 +1,65 @@
 import { api } from "@/lib/api";
+import { formatDateHour } from "@/utils/formatDate";
 import { Deslocamento } from "@/utils/types";
 
 export async function getDeslocamentos(): Promise<Deslocamento[]> {
-    const response = await api.get('/Deslocamento')
+    const response = await api.get('Deslocamento');
 
-    if (response.status === 404) {
-        return [];
+    if (response.status !== 200) {
+        return [] as Deslocamento[];
     }
 
-    return response.data;
+    const { data } = response;
+
+    const deslocamentos = data.map((deslocamento: Deslocamento) => {
+        return {
+            ...deslocamento,
+            inicioDeslocamento: formatDateHour(deslocamento.inicioDeslocamento),
+            fimDeslocamento: formatDateHour(deslocamento.fimDeslocamento)
+        }
+    })
+
+    return deslocamentos;
 }
 
 export async function getDeslocamentoById(id: string): Promise<Deslocamento> {
-    const response = await api.get(`/Deslocamento/${id}`);
+    const response = await api.get(`Deslocamento/${id}`);
 
-    if (response.status === 404) {
-        return {} as Deslocamento;
-    }
-
-    return response.data;
-}
-
-export async function createDeslocamento(deslocamento: Deslocamento): Promise<Deslocamento> {
-    const response = await api.post('/Deslocamento/IniciarDeslocamento', {
-        body: JSON.stringify(deslocamento)
-    })
-
-    if (response.status === 404) {
+    if (response.status !== 200) {
         return {} as Deslocamento;
     }
 
     const { data } = response;
 
-    const condutorCriado: Deslocamento = {
-        id: data,
-        ...deslocamento,
-    }
-
-    return condutorCriado;
+    return data;
 }
 
-export async function updateDeslocamento(deslocamento: Deslocamento): Promise<Deslocamento> {
-    const response = await api.put(`/Deslocamento/${deslocamento.id}/EncerrarDeslocamento`, {
-        body: JSON.stringify(deslocamento)
-    })
+export async function iniciarDeslocamento(deslocamento: Deslocamento): Promise<Deslocamento> {
+    const response = await api.post('Deslocamento/IniciarDeslocamento', deslocamento);
 
-    if (response.status === 404) {
+    if (response.status !== 200) {
         return {} as Deslocamento;
     }
 
-    return deslocamento;
+    return response.data;
 }
 
-export async function deleteDeslocamento(id: string): Promise<{
-    message: string
-}> {
-    const response = await api.delete(`/Deslocamento/${id}`)
+export async function encerrarDeslocamento(deslocamento: Deslocamento): Promise<number> {
+    const response = await api.put(`Deslocamento/${deslocamento.id}/EncerrarDeslocamento`, deslocamento);
 
-    if (response.status === 404) {
-        return {
-            message: 'Condutor não encontrado'
-        };
+    if (response.status !== 200) {
+        return response.status;
     }
 
-    return {
-        message: 'Condutor excluído com sucesso'
+    return response.data;
+}
+
+export async function deleteDeslocamento(id: string): Promise<number> {
+    const response = await api.delete(`Deslocamento/${id}`);
+
+    if (response.status !== 200) {
+        return response.status;
     }
+
+    return response.data;
 }

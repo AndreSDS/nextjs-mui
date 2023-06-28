@@ -9,7 +9,15 @@ type Props = {
 
 export function Modal({ children, open, onClose }: Props) {
   return (
-    <Dialog onClose={onClose} open={open}>
+    <Dialog
+      sx={{
+        '& .mui-style-1qxadfk-MuiPaper-root-MuiDialog-paper': {
+          maxHeight: 'calc(100% - 34px)',
+        },
+      }}
+      onClose={onClose}
+      open={open}
+    >
       {children}
     </Dialog>
   )

@@ -1,23 +1,20 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { Paper } from '@mui/material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { Cliente, Condutor, Deslocamento, Veiculo } from '@/utils/types'
 
 type Props = {
-  route: string;
   data: Cliente[] | Condutor[] | Deslocamento[] | Veiculo[] | undefined
   columns: GridColDef[]
+  handleClick: (id: number) => void;
 }
 
-export function DataList({ route, data, columns }: Props) {
-  const router = useRouter()
-
+export function DataList({ handleClick, data, columns }: Props) {
   return (
     <Paper>
       <DataGrid
-        onCellClick={(row) => router.push(`/${route}/${row.id}`)}
+        onCellClick={(row) => handleClick(row.id as number)}
         rows={data || []}
         columns={columns}
         pagination

@@ -4,6 +4,7 @@ import { FormGroup, MenuItem, Stack, TextField } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { Cliente } from '@/utils/types'
 import { Form } from '@/components/Form'
+import { usePathname } from 'next/navigation'
 
 type FormInputs = {
   nome: string
@@ -17,6 +18,8 @@ type FormInputs = {
 }
 
 type Props = {
+  titleForm: string
+  subTitleForm: string
   initialValues?: Cliente
   onSubmit: (data: Cliente) => void
 }
@@ -40,7 +43,12 @@ const docOptions = [
   },
 ]
 
-export function ClienteForm({ initialValues, onSubmit }: Props) {
+export function ClienteForm({
+  titleForm,
+  subTitleForm,
+  initialValues,
+  onSubmit,
+}: Props) {
   const {
     register,
     handleSubmit,
@@ -52,9 +60,9 @@ export function ClienteForm({ initialValues, onSubmit }: Props) {
   return (
     <Form
       onSubmit={handleSubmit(onSubmit)}
-      titleForm="Cadastro de Cliente"
-      subTitleForm="Preencha os campos para cadastrar um cliente"
-      textSubmitBuntton="Cadastrar"
+      titleForm={titleForm}
+      subTitleForm={subTitleForm}
+      textSubmitBuntton={initialValues ? 'Atualizar' : 'Cadastrar'}
       isLoading={isSubmitting}
     >
       <TextField
@@ -67,37 +75,39 @@ export function ClienteForm({ initialValues, onSubmit }: Props) {
         label="Nome"
       />
 
-      <FormGroup>
-        <Stack spacing={2} direction="row">
-          <TextField
-            select
-            {...register('tipoDocumento', {
-              required: true,
-            })}
-            error={!!errors.tipoDocumento}
-            sx={{ flex: 0.5 }}
-            id="tipoDocumento"
-            label="Documento"
-            defaultValue={docOptions[3].value}
-          >
-            {docOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
+      {!initialValues?.id ? (
+        <FormGroup>
+          <Stack spacing={2} direction="row">
+            <TextField
+              select
+              {...register('tipoDocumento', {
+                required: true,
+              })}
+              error={!!errors.tipoDocumento}
+              sx={{ flex: 0.5 }}
+              id="tipoDocumento"
+              label="Documento"
+              defaultValue={initialValues?.tipoDocumento}
+            >
+              {docOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
 
-          <TextField
-            {...register('numeroDocumento', {
-              required: true,
-            })}
-            error={!!errors.numeroDocumento}
-            sx={{ flex: 1 }}
-            id="numeroDocumento"
-            label="Número do Documento"
-          />
-        </Stack>
-      </FormGroup>
+            <TextField
+              {...register('numeroDocumento', {
+                required: true,
+              })}
+              error={!!errors.numeroDocumento}
+              sx={{ flex: 1 }}
+              id="numeroDocumento"
+              label="Número do Documento"
+            />
+          </Stack>
+        </FormGroup>
+      ) : null}
 
       <FormGroup>
         <Stack spacing={2} direction="row">

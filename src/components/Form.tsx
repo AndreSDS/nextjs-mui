@@ -28,11 +28,9 @@ export const Form = ({
       component="form"
       autoComplete="off"
       noValidate
-      width="600px"
-      height="800px"
-      maxHeight="none"
-      padding="1.25rem"
-      margin="0 auto"
+      height="100%"
+      maxHeight="800px"
+      padding="1rem 1.5rem"
       onSubmit={onSubmit}
     >
       <Header title={titleForm} subTitle={subTitleForm} />
