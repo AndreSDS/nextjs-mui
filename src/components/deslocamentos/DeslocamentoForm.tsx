@@ -1,71 +1,39 @@
 'use client'
 
-import { InputAdornment, MenuItem, Stack, TextField } from '@mui/material'
-import { useForm } from 'react-hook-form'
-import { Cliente, Condutor, Deslocamento, Veiculo } from '@/utils/types'
-import { getStoredData, queryClient } from '@/lib/queryClient'
-import { getClientes } from '@/resources/cliente'
-import { getCondutores } from '@/resources/condutor'
-import { Form } from '@/components/Form'
-import dayjs from 'dayjs'
+import { MenuItem, Stack, TextField } from '@mui/material'
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { MobileTimePicker } from '@mui/x-date-pickers/MobileTimePicker'
-
-type FormInputs = {
-  kmInicial: number
-  kmFinal: number
-  inicioDeslocamento: string
-  fimDeslocamento: string
-  checkList: string
-  motivo: string
-  observacao: string
-  idCondutor: number
-  idVeiculo: number
-  idCliente: number
-}
+import { useForm } from 'react-hook-form'
+import dayjs from 'dayjs'
+import { Cliente, Condutor, DeslocamentoCreate, Veiculo } from '@/utils/types'
+import { formatISODateToUTC } from '@/utils/formatDate'
+import { getStoredData, queryClient } from '@/lib/queryClient'
+import { preFetchData, useFetchData } from '@/lib/queryClient'
+import { getClientes } from '@/resources/cliente'
+import { getCondutores } from '@/resources/condutor'
+import { iniciarDeslocamento } from '@/resources/deslocamentos'
+import { Form } from '@/components/Form'
 
 type Props = {
-  initialValues?: Deslocamento
-  onSubmit: (data: Deslocamento) => void
+  handleClose: () => void
 }
 
-const categoryOptions = [
-  {
-    value: 'CPF',
-    label: 'CPF',
-  },
-  {
-    value: 'RG',
-    label: 'RG',
-  },
-  {
-    value: 'CNH',
-    label: 'CNH',
-  },
-  {
-    value: 'Outro',
-    label: 'Outro',
-  },
-]
-
-export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
+export function DeslocamentoForm({ handleClose }: Props) {
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<FormInputs>({
-    defaultValues: initialValues,
-  })
+  } = useForm<DeslocamentoCreate>()
   const clientesList: Cliente[] = getStoredData('clientes') || []
   const veiculosList: Veiculo[] = getStoredData('veiculos') || []
   const condutoresList: Condutor[] = getStoredData('condutores') || []
 
   if (!clientesList || !condutoresList) {
-    queryClient.prefetchQuery(['clientes'], getClientes)
-    queryClient.prefetchQuery(['condutores'], getCondutores)
+    preFetchData('clientes', getClientes)
+    preFetchData('condutores', getCondutores)
   }
 
   const clientes = clientesList?.map((cliente) => ({
@@ -83,15 +51,28 @@ export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
     label: condutor.nome,
   }))
 
-  const now = new Date()
+  const novoDeslocamento = async (deslocamento: DeslocamentoCreate) => {
+    try {
+      if (!deslocamento.inicioDeslocamento) {
+        deslocamento.inicioDeslocamento = new Date().toISOString()
+      }
+
+      await iniciarDeslocamento(deslocamento)
+      queryClient.invalidateQueries(['deslocamentos'])
+      handleClose()
+    } catch (error) {
+      const { response } = error as any
+      console.log(response.data, response.status)
+    }
+  }
 
   return (
     <Form
-      titleForm="Cadastro de Deslocamento"
-      subTitleForm="Preencha os campos para cadastrar um deslocamento"
-      textSubmitBuntton="Cadastrar"
+      titleForm="Iniciar Deslocamento"
+      subTitleForm="Preencha os campos para iniciar um deslocamento"
+      textSubmitBuntton="Iniciar"
       isLoading={isSubmitting}
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(novoDeslocamento)}
     >
       <Stack direction="row" spacing={2}>
         <TextField
@@ -115,8 +96,8 @@ export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
           >
             <DemoItem>
               <MobileTimePicker
-                onChange={() => {
-                  setValue('inicioDeslocamento', dayjs().toString())
+                onChange={(value: any) => {
+                  setValue('inicioDeslocamento', formatISODateToUTC(value))
                 }}
                 defaultValue={dayjs()}
               />
@@ -126,9 +107,7 @@ export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
       </Stack>
 
       <TextField
-        {...register('checkList', {
-          required: true,
-        })}
+        {...register('checkList')}
         error={!!errors.checkList}
         fullWidth
         id="checkList"
@@ -138,9 +117,7 @@ export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
       />
 
       <TextField
-        {...register('motivo', {
-          required: true,
-        })}
+        {...register('motivo')}
         error={!!errors.motivo}
         fullWidth
         id="motivo"
@@ -150,9 +127,7 @@ export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
       />
 
       <TextField
-        {...register('observacao', {
-          required: true,
-        })}
+        {...register('observacao')}
         error={!!errors.observacao}
         fullWidth
         id="observacao"
@@ -162,9 +137,7 @@ export function DeslocamentoForm({ initialValues, onSubmit }: Props) {
       />
 
       <TextField
-        {...register('idCliente', {
-          required: true,
-        })}
+        {...register('idCliente')}
         select
         error={!!errors.idCliente}
         fullWidth

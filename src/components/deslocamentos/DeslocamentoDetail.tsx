@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
 import {
   Alarm,
   AlarmOn,
@@ -8,15 +10,32 @@ import {
   Place,
   WhereToVote,
 } from '@mui/icons-material'
-import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
+import { getStoredItem, queryClient } from '@/lib/queryClient'
+import { deleteDeslocamento } from '@/resources/deslocamentos'
+import { DeslocamentoDetails, DeslocamentoEdit } from '@/utils/types'
+import { Modal } from '@/components/Modal'
+import { DeslocamentoEditForm } from '@/components/deslocamentos/DeslocamentoEditForm'
 
 type Props = {
-  deslocamento: any
+  id: number
   handleDelete: () => void
   handleEdit: () => void
 }
 
-export function DeslocamentoDetail({ deslocamento, handleDelete, handleEdit }: Props) {
+export function DeslocamentoDetail({ id, handleDelete, handleEdit }: Props) {
+  const [openEditForm, setOpenEditForm] = useState(false)
+  const deslocamentoDetails: DeslocamentoDetails = getStoredItem(
+    'deslocamentos',
+    id,
+  )
+  const cliente = getStoredItem('clientes', id)
+  const condutor = getStoredItem('condutores', id)
+  const veiculo = getStoredItem('veiculos', id)
+
+  deslocamentoDetails.nomeCliente = cliente.nome
+  deslocamentoDetails.nomeCondutor = condutor.nome
+  deslocamentoDetails.nomeVeiculo = veiculo.nome
+
   const {
     kmInicial,
     kmFinal,
@@ -25,10 +44,43 @@ export function DeslocamentoDetail({ deslocamento, handleDelete, handleEdit }: P
     motivo,
     checkList,
     observacao,
-    cliente,
-    condutor,
-    veiculo,
-  } = deslocamento
+    nomeCliente,
+    nomeCondutor,
+    nomeVeiculo,
+  } = deslocamentoDetails
+
+  const onDelete = async () => {
+    try {
+      await deleteDeslocamento(id)
+      queryClient.invalidateQueries(['deslocamentos'])
+      handleDelete()
+    } catch (error) {
+      const { response } = error as any
+      console.log(response.data, response.status)
+    }
+  }
+
+  const encerrarDeslocamento = async (deslocamento: DeslocamentoEdit) => {
+    try {
+      if (!deslocamento.fimDeslocamento) {
+        deslocamento.fimDeslocamento = new Date().toISOString()
+      }
+      const deslocamentoEdit: DeslocamentoEdit = {
+        id,
+        ...deslocamento,
+      }
+
+      await encerrarDeslocamento(deslocamentoEdit)
+
+      queryClient.invalidateQueries(['deslocamentos'])
+
+      setOpenEditForm(false)
+      handleEdit()
+    } catch (error) {
+      const { response } = error as any
+      console.log(response.data, response.status)
+    }
+  }
 
   return (
     <Box
@@ -38,21 +90,29 @@ export function DeslocamentoDetail({ deslocamento, handleDelete, handleEdit }: P
       height="100%"
       width="100%"
     >
+      <Modal open={openEditForm} onClose={() => setOpenEditForm(false)}>
+        <DeslocamentoEditForm onSubmit={encerrarDeslocamento} />
+      </Modal>
+
       <Paper
         sx={{
           padding: '1.5rem',
         }}
       >
         <Stack spacing={2}>
-          <Typography variant="body1">Nome do Cliente: {cliente}</Typography>
+          <Typography variant="body1">
+            Nome do Cliente: {nomeCliente}
+          </Typography>
 
           <Divider />
 
-          <Typography variant="body1">Nome do Condutor: {condutor}</Typography>
+          <Typography variant="body1">
+            Nome do Condutor: {nomeCondutor}
+          </Typography>
 
           <Divider />
 
-          <Typography variant="body1">Veículo: {veiculo}</Typography>
+          <Typography variant="body1">Veículo: {nomeVeiculo}</Typography>
 
           <Divider />
 
@@ -101,7 +161,7 @@ export function DeslocamentoDetail({ deslocamento, handleDelete, handleEdit }: P
                     marginRight: '0.5rem',
                   }}
                 />
-                Fim: {fimDeslocamento}
+                Fim: {fimDeslocamento || 'em andamento'}
               </Box>
             </Typography>
           </Stack>
@@ -121,7 +181,7 @@ export function DeslocamentoDetail({ deslocamento, handleDelete, handleEdit }: P
 
         <Stack direction="row" justifyContent="flex-end" spacing={3}>
           <Button
-            onClick={handleDelete}
+            onClick={onDelete}
             disabled={false}
             variant="outlined"
             color="error"
@@ -145,7 +205,7 @@ export function DeslocamentoDetail({ deslocamento, handleDelete, handleEdit }: P
               marginTop: '1.5rem',
             }}
           >
-            Editar
+            Encerrar
           </Button>
         </Stack>
       </Paper>

@@ -32,6 +32,38 @@ export type Deslocamento = {
     idCliente: number;
 }
 
+export type DeslocamentoCreate = {
+    kmInicial: number;
+    inicioDeslocamento: string;
+    checkList: string;
+    motivo: string;
+    observacao: string;
+    idCondutor: number;
+    idVeiculo: number;
+    idCliente: number;
+}
+
+export type DeslocamentoDetails = {
+    id?: number;
+    kmInicial: number;
+    kmFinal: number;
+    inicioDeslocamento: string;
+    fimDeslocamento: string;
+    checkList: string;
+    motivo: string;
+    observacao: string;
+    nomeCliente: string
+    nomeCondutor: string
+    nomeVeiculo: string
+}
+
+export type DeslocamentoEdit = {
+    id?: number;
+    kmFinal: number;
+    fimDeslocamento: string;
+    observacao: string;
+}
+
 export type Veiculo = {
     id?: number;
     placa: string;

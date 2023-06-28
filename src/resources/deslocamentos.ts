@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
-import { formatDateHour } from "@/utils/formatDate";
-import { Deslocamento } from "@/utils/types";
+import { formatDateToString } from "@/utils/formatDate";
+import { Deslocamento, DeslocamentoCreate, DeslocamentoEdit } from "@/utils/types";
 
 export async function getDeslocamentos(): Promise<Deslocamento[]> {
     const response = await api.get('Deslocamento');
@@ -14,8 +14,8 @@ export async function getDeslocamentos(): Promise<Deslocamento[]> {
     const deslocamentos = data.map((deslocamento: Deslocamento) => {
         return {
             ...deslocamento,
-            inicioDeslocamento: formatDateHour(deslocamento.inicioDeslocamento),
-            fimDeslocamento: formatDateHour(deslocamento.fimDeslocamento)
+            inicioDeslocamento: formatDateToString(deslocamento.inicioDeslocamento),
+            fimDeslocamento: deslocamento ? formatDateToString(deslocamento.fimDeslocamento) : '',
         }
     })
 
@@ -34,17 +34,17 @@ export async function getDeslocamentoById(id: string): Promise<Deslocamento> {
     return data;
 }
 
-export async function iniciarDeslocamento(deslocamento: Deslocamento): Promise<Deslocamento> {
+export async function iniciarDeslocamento(deslocamento: DeslocamentoCreate): Promise<number> {
     const response = await api.post('Deslocamento/IniciarDeslocamento', deslocamento);
 
     if (response.status !== 200) {
-        return {} as Deslocamento;
+        return response.status;
     }
 
     return response.data;
 }
 
-export async function encerrarDeslocamento(deslocamento: Deslocamento): Promise<number> {
+export async function encerrarDeslocamento(deslocamento: DeslocamentoEdit): Promise<number> {
     const response = await api.put(`Deslocamento/${deslocamento.id}/EncerrarDeslocamento`, deslocamento);
 
     if (response.status !== 200) {
@@ -54,8 +54,8 @@ export async function encerrarDeslocamento(deslocamento: Deslocamento): Promise<
     return response.data;
 }
 
-export async function deleteDeslocamento(id: string): Promise<number> {
-    const response = await api.delete(`Deslocamento/${id}`);
+export async function deleteDeslocamento(id: number): Promise<number> {
+    const response = await api.delete(`Deslocamento/${id}`, { data: { id } });
 
     if (response.status !== 200) {
         return response.status;
