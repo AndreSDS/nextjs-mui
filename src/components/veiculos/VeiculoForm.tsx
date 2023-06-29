@@ -1,57 +1,62 @@
 import { useForm } from 'react-hook-form'
+import { TextField } from '@mui/material'
 import { Veiculo } from '@/utils/types'
 import { Form } from '@/components/Form'
-import { TextField } from '@mui/material'
 
-type FormInputs = {
-  placa: string
-  marcaModelo: string
-  anoFabricacao: number
-  kmAtual: number
+type Props = {
+  titleForm: string
+  subTitleForm: string
+  textSubmitBuntton: string
+  initialValues?: Veiculo
+  onSubmit: (data: Veiculo) => void
 }
 
-type Props = { initialValues?: Veiculo; onSubmit: (data: Veiculo) => void }
-
-export function VeiculoForm({ initialValues, onSubmit }: Props) {
+export function VeiculoForm({
+  titleForm,
+  subTitleForm,
+  textSubmitBuntton,
+  initialValues,
+  onSubmit,
+}: Props) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormInputs>({
+  } = useForm<Veiculo>({
     defaultValues: initialValues,
   })
 
   return (
     <Form
       onSubmit={handleSubmit(onSubmit)}
-      titleForm="Cadastro de Condutor"
-      subTitleForm="Preencha os campos para cadastrar um condutor"
-      textSubmitBuntton="Cadastrar"
+      titleForm={titleForm}
+      subTitleForm={subTitleForm}
+      textSubmitBuntton={textSubmitBuntton}
       isLoading={isSubmitting}
     >
       <TextField
-        {...register('marcaModelo', {
-          required: true,
-        })}
-        error={!!errors.marcaModelo}
+        {...register('marcaModelo')}
         fullWidth
         id="nome"
-        label="Nome"
+        label="Marca/Modelo do Veículo"
       />
 
-      <TextField
-        {...register('placa', {
-          required: true,
-        })}
-        error={!!errors.placa}
-        fullWidth
-        id="placa"
-        label="Placa"
-      />
+      {initialValues?.id ? null : (
+        <TextField
+          {...register('placa', {
+            required: true,
+          })}
+          error={!!errors.placa}
+          fullWidth
+          id="placa"
+          label="Placa"
+        />
+      )}
 
       <TextField
+        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
         {...register('anoFabricacao', {
-          required: true,
+          required: !!initialValues?.id,
         })}
         error={!!errors.anoFabricacao}
         fullWidth
@@ -60,8 +65,9 @@ export function VeiculoForm({ initialValues, onSubmit }: Props) {
       />
 
       <TextField
+        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
         {...register('kmAtual', {
-          required: true,
+          required: !!initialValues?.id,
         })}
         error={!!errors.kmAtual}
         fullWidth

@@ -18,11 +18,10 @@ import { DeslocamentoEditForm } from '@/components/deslocamentos/DeslocamentoEdi
 
 type Props = {
   id: number
-  handleDelete: () => void
-  handleEdit: () => void
+  handleClose: () => void
 }
 
-export function DeslocamentoDetail({ id, handleDelete, handleEdit }: Props) {
+export function DeslocamentoDetail({ id, handleClose }: Props) {
   const [openEditForm, setOpenEditForm] = useState(false)
   const deslocamentoDetails: DeslocamentoDetails = getStoredItem(
     'deslocamentos',
@@ -49,11 +48,16 @@ export function DeslocamentoDetail({ id, handleDelete, handleEdit }: Props) {
     nomeVeiculo,
   } = deslocamentoDetails
 
+  const afterAction = () => {
+    queryClient.invalidateQueries(['deslocamentos'])
+    setOpenEditForm(false)
+    handleClose()
+  }
+
   const onDelete = async () => {
     try {
       await deleteDeslocamento(id)
-      queryClient.invalidateQueries(['deslocamentos'])
-      handleDelete()
+      afterAction()
     } catch (error) {
       const { response } = error as any
       console.log(response.data, response.status)
@@ -71,11 +75,6 @@ export function DeslocamentoDetail({ id, handleDelete, handleEdit }: Props) {
       }
 
       await encerrarDeslocamento(deslocamentoEdit)
-
-      queryClient.invalidateQueries(['deslocamentos'])
-
-      setOpenEditForm(false)
-      handleEdit()
     } catch (error) {
       const { response } = error as any
       console.log(response.data, response.status)
@@ -195,7 +194,7 @@ export function DeslocamentoDetail({ id, handleDelete, handleEdit }: Props) {
           </Button>
 
           <Button
-            onClick={handleEdit}
+            onClick={() => setOpenEditForm(true)}
             disabled={false}
             variant="contained"
             color="info"

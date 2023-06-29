@@ -66,7 +66,7 @@ export type DeslocamentoEdit = {
 
 export type Veiculo = {
     id?: number;
-    placa: string;
+    placa?: string;
     marcaModelo: string;
     anoFabricacao: number;
     kmAtual: number;

@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { Cliente } from '@/utils/types'
-import { Header } from '@/components/Header'
-import { Modal } from '@/components/Modal'
-import { ClienteForm } from '@/components/clientes/ClienteForm'
-import { DataList } from '../DataList'
+import { queryClient, useFetchData } from '@/lib/queryClient'
 import { createCliente, getClientes } from '@/resources/cliente'
-import { useFetchData } from '@/hooks/useFetchData'
-import { useDataStored } from '@/hooks/useDataStored'
+import { Modal } from '@/components/Modal'
+import { Header } from '@/components/Header'
+import { DataList } from '@/components/DataList'
+import { ClienteForm } from '@/components/clientes/ClienteForm'
+import { ClienteProfile } from '@/components/clientes/ClienteProfile'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -30,18 +30,33 @@ const columns: GridColDef[] = [
 ]
 
 export function ClientList() {
-  const [open, setOpen] = useState(false)
-  const { data: clientes, isFetching } = useFetchData( 'clientes', getClientes )
-  const { mutateDataStored } = useDataStored('clientes', {} as Cliente, createCliente)
+  const [openClienteForm, setOpenClienteForm] = useState(false)
+  const [openClienteProfile, setOpenClienteProfile] = useState(false)
+  const [clienteId, setClienteId] = useState<number>(0)
+  const { data: clientes, isFetching } = useFetchData({
+    key: 'clientes',
+    queryFn: getClientes,
+    dataType: {} as Cliente,
+  })
 
-  function handleOpenModal() {
-    setOpen(!open)
+  const afterAction = () => {
+    queryClient.invalidateQueries(['clientes'])
+    setOpenClienteForm(false)
   }
 
-  const onSubmit = async (data: Cliente) => {
-    const cliente = mutateDataStored(data)
+  const handleCreateCliente = async (data: Cliente) => {
+    try {
+      await createCliente(data)
+      afterAction()
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
 
-    handleOpenModal()
+  const openProfile = (id: number) => {
+    setClienteId(id)
+    setOpenClienteProfile(true)
   }
 
   if (isFetching) {
@@ -61,18 +76,29 @@ export function ClientList() {
 
   return (
     <Box width="100%" pl={12} pr={4}>
-      <Modal open={open} onClose={handleOpenModal}>
-        <ClienteForm onSubmit={onSubmit} />
+      <Modal open={openClienteForm} onClose={() => setOpenClienteForm(false)}>
+        <ClienteForm
+          titleForm="Cadastrar novo cliente"
+          subTitleForm="Preencha os dados do cliente"
+          onSubmit={handleCreateCliente}
+        />
+      </Modal>
+
+      <Modal
+        open={openClienteProfile}
+        onClose={() => setOpenClienteProfile(false)}
+      >
+        <ClienteProfile onClose={() => setOpenClienteProfile(false)} id={clienteId} />
       </Modal>
 
       <Header
         title="Clientes"
         subTitle="Lista de clientes cadastrados"
-        handleClick={handleOpenModal}
+        handleClick={() => setOpenClienteForm(true)}
         hasButton
       />
 
-      <DataList route="clientes" data={clientes} columns={columns} />
+      <DataList handleClick={openProfile} data={clientes} columns={columns} />
     </Box>
   )
 }

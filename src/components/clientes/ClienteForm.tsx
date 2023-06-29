@@ -4,18 +4,6 @@ import { FormGroup, MenuItem, Stack, TextField } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { Cliente } from '@/utils/types'
 import { Form } from '@/components/Form'
-import { usePathname } from 'next/navigation'
-
-type FormInputs = {
-  nome: string
-  tipoDocumento: string
-  numeroDocumento: string
-  logradouro: string
-  numero: string
-  bairro: string
-  cidade: string
-  uf: string
-}
 
 type Props = {
   titleForm: string
@@ -53,16 +41,18 @@ export function ClienteForm({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormInputs>({
+  } = useForm<Cliente>({
     defaultValues: initialValues,
   })
+
+  const isEditing = !!initialValues?.id
 
   return (
     <Form
       onSubmit={handleSubmit(onSubmit)}
       titleForm={titleForm}
       subTitleForm={subTitleForm}
-      textSubmitBuntton={initialValues ? 'Atualizar' : 'Cadastrar'}
+      textSubmitBuntton={isEditing ? 'Atualizar' : 'Cadastrar'}
       isLoading={isSubmitting}
     >
       <TextField
@@ -75,14 +65,14 @@ export function ClienteForm({
         label="Nome"
       />
 
-      {!initialValues?.id ? (
+      {!isEditing ? (
         <FormGroup>
           <Stack spacing={2} direction="row">
             <TextField
-              select
               {...register('tipoDocumento', {
                 required: true,
               })}
+              select
               error={!!errors.tipoDocumento}
               sx={{ flex: 0.5 }}
               id="tipoDocumento"

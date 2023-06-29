@@ -1,24 +1,22 @@
 'use client'
 
-import { Box, Stack, Typography, colors } from '@mui/material'
-import { queryClient, useMutation } from '@/lib/queryClient'
+import { useState } from 'react'
+import { Box, Stack, Typography } from '@mui/material'
 import { Cliente } from '@/utils/types'
-import { ClienteForm } from './ClienteForm'
 import { Profile } from '@/components/Profile'
-import { useDataStored } from '@/hooks/useDataStored'
-import { updateCliente } from '@/resources/cliente'
+import { ClienteForm } from '@/components/clientes/ClienteForm'
+import { getStoredItem, queryClient } from '@/lib/queryClient'
+import { deleteCliente, updateCliente } from '@/resources/cliente'
+import { Modal } from '../Modal'
 
 type Props = {
-  id: string
+  id: number
+  onClose: () => void
 }
 
-export function ClienteProfile({ id }: Props) {
-  const { dataStored: cliente, mutateDataStored } = useDataStored({
-    id: Number(id),
-    key: 'clientes',
-    dataType: {} as Cliente,
-    fnToMutate: updateCliente
-  })
+export function ClienteProfile({ id, onClose }: Props) {
+  const [openClienteForm, setOpenClienteForm] = useState(false)
+  const cliente = getStoredItem('clientes', id)
 
   const {
     nome,
@@ -31,66 +29,106 @@ export function ClienteProfile({ id }: Props) {
     uf,
   } = cliente
 
-  const onSubmit = async (data: Cliente) => {
-    const cliente = mutateDataStored(data)
+  const afterAction = () => {
+    queryClient.invalidateQueries(['clientes'])
+    setOpenClienteForm(false)
+  }
+
+  const handleUpdate = async (data: Cliente) => {
+    try {
+      await updateCliente(data)
+      afterAction()
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteCliente(id)
+      afterAction()
+      onClose()
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
   }
 
   return (
-    <Box height="100%" width="100%" pl={12} pt={12} bgcolor={colors.grey[400]}>
-      <Profile
-        nome={nome}
-        numeroDocumento={`${tipoDocumento} - ${numeroDocumento}`}
-        form={<ClienteForm onSubmit={onSubmit} initialValues={cliente} />}
-      >
-        <Typography
-          variant="h3"
-          sx={{
-            fontSize: '1.25rem',
-            lineHeight: 1.2,
-            fontWeight: 600,
-            mb: 1,
-          }}
+    <Box
+      display="flex"
+      alignItems="flex-start"
+      justifyContent="center"
+      height="100%"
+      width="400px"
+    >
+      <Modal open={openClienteForm} onClose={() => setOpenClienteForm(false)}>
+        <ClienteForm
+          titleForm="Atualizar dados do cliente"
+          subTitleForm="Preencha os dados do cliente"
+          onSubmit={handleUpdate}
+          initialValues={cliente}
+        />
+      </Modal>
+
+      {!cliente ? null : (
+        <Profile
+          nome={nome}
+          numeroDocumento={`${tipoDocumento} - ${numeroDocumento}`}
+          openEditForm={() => setOpenClienteForm(true)}
+          onDelete={handleDelete}
         >
-          Endereço
-        </Typography>
-
-        <Stack spacing={1}>
-          <Typography variant="h4" fontWeight={600} fontSize="1rem">
-            Rua:{' '}
-            <Typography variant="body2" component="span">
-              {logradouro}
-            </Typography>
+          <Typography
+            variant="h3"
+            sx={{
+              fontSize: '1.25rem',
+              lineHeight: 1.2,
+              fontWeight: 600,
+              mb: 1,
+            }}
+          >
+            Endereço
           </Typography>
 
-          <Typography variant="h4" fontWeight={600} fontSize="1rem">
-            Número:{' '}
-            <Typography variant="body2" component="span">
-              {numero}
+          <Stack spacing={1}>
+            <Typography variant="h4" fontWeight={600} fontSize="1rem">
+              Rua:{' '}
+              <Typography variant="body2" component="span">
+                {logradouro}
+              </Typography>
             </Typography>
-          </Typography>
 
-          <Typography variant="h4" fontWeight={600} fontSize="1rem">
-            Bairro:{' '}
-            <Typography variant="body2" component="span">
-              {bairro}
+            <Typography variant="h4" fontWeight={600} fontSize="1rem">
+              Número:{' '}
+              <Typography variant="body2" component="span">
+                {numero}
+              </Typography>
             </Typography>
-          </Typography>
 
-          <Typography variant="h4" fontWeight={600} fontSize="1rem">
-            Cidade:{' '}
-            <Typography variant="body2" component="span">
-              {cidade}
+            <Typography variant="h4" fontWeight={600} fontSize="1rem">
+              Bairro:{' '}
+              <Typography variant="body2" component="span">
+                {bairro}
+              </Typography>
             </Typography>
-          </Typography>
 
-          <Typography variant="h4" fontWeight={600} fontSize="1rem">
-            Estado:{' '}
-            <Typography variant="body2" component="span">
-              {uf}
+            <Typography variant="h4" fontWeight={600} fontSize="1rem">
+              Cidade:{' '}
+              <Typography variant="body2" component="span">
+                {cidade}
+              </Typography>
             </Typography>
-          </Typography>
-        </Stack>
-      </Profile>
+
+            <Typography variant="h4" fontWeight={600} fontSize="1rem">
+              Estado:{' '}
+              <Typography variant="body2" component="span">
+                {uf}
+              </Typography>
+            </Typography>
+          </Stack>
+        </Profile>
+      )}
     </Box>
   )
 }

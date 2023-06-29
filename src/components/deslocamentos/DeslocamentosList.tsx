@@ -58,11 +58,7 @@ export function DeslocamentosList() {
     setOpenFormDeslocamento(!openFormDeslocamento)
   }
 
-  const handleDelete = async () => {
-    setOpenDeslocamentoDetails(false)
-  }
-
-  const handleEdit = async () => {
+  const handleCloseDetails= async () => {
     setOpenDeslocamentoDetails(false)
   }
 
@@ -103,8 +99,7 @@ export function DeslocamentosList() {
       >
         <DeslocamentoDetail
           id={deslocamentoId || 0}
-          handleDelete={handleDelete}
-          handleEdit={handleEdit}
+          handleClose={handleCloseDetails}
         />
       </Modal>
 

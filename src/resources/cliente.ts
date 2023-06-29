@@ -4,7 +4,7 @@ import { Cliente } from "@/utils/types";
 export async function getClientes(): Promise<Cliente[]> {
     const response = await api.get('/Cliente')
 
-    if (response.status === 404) {
+    if (response.status !== 200) {
         return [];
     }
 
@@ -23,7 +23,7 @@ export async function getClientes(): Promise<Cliente[]> {
 export async function getClienteById(id: string): Promise<Cliente> {
     const response = await api.get(`/Cliente/${id}`);
 
-    if (response.status === 404) {
+    if (response.status !== 200) {
         return {} as Cliente;
     }
 
@@ -32,49 +32,38 @@ export async function getClienteById(id: string): Promise<Cliente> {
     return data;
 }
 
-export async function createCliente(cliente: Cliente): Promise<Cliente> {
-    const response = await api.post('/Cliente', {
-        body: JSON.stringify(cliente)
-    })
+export async function createCliente(cliente: Cliente): Promise<number> {
+    const response = await api.post('/Cliente', cliente)
 
-    if (response.status === 404) {
-        return {} as Cliente;
+    if (response.status !== 200) {
+        return response.status;
     }
 
-    const { data } = response;
+    return response.data;
+}
 
-    const clienteCriado: Cliente = {
-        id: data,
+export async function updateCliente(cliente: Cliente): Promise<number> {
+    const clienteToUpdate = {
         ...cliente,
+        numeroDocumento: null,
+        tipoDocumento: null
     }
 
-    return clienteCriado;
+    const response = await api.put(`/Cliente/${cliente.id}`, clienteToUpdate)
+
+    if (response.status !== 200) {
+        return response.status;
+    }
+
+    return response.data;
 }
 
-export async function updateCliente(cliente: Cliente): Promise<Cliente> {
-    const response = await api.put(`/Cliente/${cliente.id}`, {
-        body: JSON.stringify(cliente)
-    })
+export async function deleteCliente(id: number): Promise<number> {
+    const response = await api.delete(`/Cliente/${id}`, { data: { id } })
 
-    if (response.status === 404) {
-        return {} as Cliente;
+    if (response.status !== 200) {
+        return response.status;
     }
 
-    return cliente;
-}
-
-export async function deleteCliente(id: string): Promise<{
-    message: string
-}> {
-    const response = await api.delete(`/Cliente/${id}`)
-
-    if (response.status === 404) {
-        return {
-            message: 'Cliente não encontrado'
-        };
-    }
-
-    return {
-        message: 'Cliente excluído com sucesso'
-    }
+    return response.data;
 }

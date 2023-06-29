@@ -3,15 +3,14 @@
 import { useState } from 'react'
 import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { queryClient, useMutation, useQuery } from '@/lib/queryClient'
+import { queryClient, useFetchData } from '@/lib/queryClient'
+import { createVeiculo, getVeiculos } from '@/resources/veiculo'
+import { Veiculo } from '@/utils/types'
 import { Modal } from '@/components/Modal'
 import { Header } from '@/components/Header'
 import { DataList } from '@/components/DataList'
 import { VeiculoForm } from '@/components/veiculos/VeiculoForm'
-import { Veiculo } from '@/utils/types'
-import { createVeiculo, getVeiculos } from '@/resources/veiculo'
-import { useFetchData } from '@/hooks/useFetchData'
-import { useDataStored } from '@/hooks/useDataStored'
+import { VeiculoDetails } from '@/components/veiculos/VeiculoDetails'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -38,21 +37,32 @@ const columns: GridColDef[] = [
 ]
 
 export function VeiculosList() {
-  const [open, setOpen] = useState(false)
-  const { data: veiculos, isFetching } = useFetchData(
-    'veiculos',
-    getVeiculos
-  )
-  const { mutateDataStored } = useDataStored('veiculo', {} as Veiculo, createVeiculo)
+  const [openVeiculoForm, setOpenVeiculoForm] = useState(false)
+  const [openVeiculoDetails, setOpenVeiculoDetails] = useState(false)
+  const [veiculoId, setVeiculoId] = useState<number | undefined>(undefined)
+  const { data: veiculos, isFetching } = useFetchData({
+    key: 'veiculos',
+    queryFn: getVeiculos,
+    dataType: {} as Veiculo,
+  })
 
-  function handleOpenModal() {
-    setOpen(!open)
+  const handleCreateVeiculo = async (data: Veiculo) => {
+    try {
+      if (!data.marcaModelo) data.marcaModelo = ''
+      if (!data.placa) data.placa = ''
+
+      const response = await createVeiculo(data)
+      queryClient.invalidateQueries(['veiculos'])
+      setOpenVeiculoForm(false)
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
   }
 
-  const onSubmit = async (data: Veiculo) => {
-    const cliente = mutateDataStored(data)
-
-    handleOpenModal()
+  const openDetails = (id: number) => {
+    setVeiculoId(id)
+    setOpenVeiculoDetails(!openVeiculoDetails)
   }
 
   if (isFetching) {
@@ -72,18 +82,33 @@ export function VeiculosList() {
 
   return (
     <Box width="100%" pl={12} pr={4}>
-      <Modal open={open} onClose={handleOpenModal}>
-        <VeiculoForm onSubmit={onSubmit} />
+      <Modal open={openVeiculoForm} onClose={() => setOpenVeiculoForm(false)}>
+        <VeiculoForm
+          titleForm="Cadastrar Veículo"
+          subTitleForm="Preencha os campos para cadastrar um condutor"
+          textSubmitBuntton="Cadastrar"
+          onSubmit={handleCreateVeiculo}
+        />
+      </Modal>
+
+      <Modal
+        open={openVeiculoDetails}
+        onClose={() => setOpenVeiculoDetails(false)}
+      >
+        <VeiculoDetails
+          handleClose={() => setOpenVeiculoDetails(false)}
+          id={veiculoId || 0}
+        />
       </Modal>
 
       <Header
         title="Veículos"
         subTitle="Lista de veículos cadastrados"
-        handleClick={handleOpenModal}
+        handleClick={() => setOpenVeiculoForm(true)}
         hasButton
       />
 
-      <DataList route="veiculos" data={veiculos} columns={columns} />
+      <DataList handleClick={openDetails} data={veiculos} columns={columns} />
     </Box>
   )
 }

@@ -9,54 +9,75 @@ import {
   Paper,
   Stack,
   Typography,
+  colors,
 } from '@mui/material'
-import { Edit } from '@mui/icons-material'
-import { Modal } from '@/components/Modal'
+import { Delete, Edit } from '@mui/icons-material'
 import { stringToColor } from '@/utils/stringToColor'
 
 type Props = {
-  form: ReactComponentElement<FC>
+  openEditForm: () => void
+  onDelete: () => void
+  form?: ReactComponentElement<FC> //remover
   nome: string
   numeroDocumento: string
   children: ReactNode
 }
 
-export function Profile({ nome, numeroDocumento, form, children }: Props) {
-  const [open, setOpen] = useState(false)
+export function Profile({
+  nome,
+  numeroDocumento,
+  openEditForm,
+  onDelete,
+  children,
+}: Props) {
   const color = stringToColor(nome)
 
   return (
     <>
-      <Modal open={open} onClose={() => setOpen(!open)}>
-        {form}
-      </Modal>
-
       <Paper
         sx={{
-          flex: 1,
-          maxWidth: 400,
-          paddingTop: 4,
-          paddingBottom: 4,
+          width: '100%',
+          height: '100%',
+          paddingTop: 3,
+          paddingBottom: 3,
           paddingLeft: 2,
           paddingRight: 2,
         }}
       >
         <Stack spacing={2}>
-          <IconButton
-            onClick={() => setOpen(!open)}
-            aria-label="edit"
-            size="large"
+          <Stack
             sx={{
-              position: 'absolute',
-              zIndex: 1,
-              ml: 2,
-              bgcolor: color,
+              marginX: 'auto',
             }}
+            direction="row"
+            width="70%"
+            justifyContent="space-between"
           >
-            <Edit />
-          </IconButton>
+            <IconButton
+              onClick={openEditForm}
+              aria-label="edit"
+              size="large"
+              sx={{
+                bgcolor: color,
+              }}
+            >
+              <Edit />
+            </IconButton>
+
+            <IconButton
+              onClick={onDelete}
+              aria-label="edit"
+              size="large"
+              sx={{
+                bgcolor: colors.red[700],
+              }}
+            >
+              <Delete />
+            </IconButton>
+          </Stack>
 
           <Box
+            marginTop="0"
             display="flex"
             gap={1}
             flexDirection="column"
