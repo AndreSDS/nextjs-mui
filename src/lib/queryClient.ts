@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useMutation, useQuery, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
 
@@ -13,7 +13,7 @@ const useFetchData = ({ key, queryFn, dataType }: Props) => {
     const { data, isFetching } = useQuery<typeof dataType[]>({
         queryKey: [key],
         queryFn,
-        staleTime: 1000 * 60 * 60 * 24 // 1 day
+        staleTime: 1000 * 60 * 60 * 24, // 1 day
     })
 
     return {

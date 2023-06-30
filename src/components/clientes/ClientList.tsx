@@ -1,16 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { Cliente } from '@/utils/types'
-import { queryClient, useFetchData } from '@/lib/queryClient'
+import { queryClient, useFetchData, useMutation } from '@/lib/queryClient'
 import { createCliente, getClientes } from '@/resources/cliente'
 import { Modal } from '@/components/Modal'
-import { Header } from '@/components/Header'
-import { DataList } from '@/components/DataList'
+import { DataListComponent } from '@/components/DataList'
 import { ClienteForm } from '@/components/clientes/ClienteForm'
-import { ClienteProfile } from '@/components/clientes/ClienteProfile'
+import { ClienteDetails } from '@/components/clientes/ClienteDetails'
+import { SnackBarComponent } from '@/components/SnackBarComponent'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { Box } from '@mui/material'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -31,13 +32,21 @@ const columns: GridColDef[] = [
 
 export function ClientList() {
   const [openClienteForm, setOpenClienteForm] = useState(false)
-  const [openClienteProfile, setOpenClienteProfile] = useState(false)
+  const [openClienteDetails, setOpenClienteDetails] = useState(false)
   const [clienteId, setClienteId] = useState<number>(0)
   const { data: clientes, isFetching } = useFetchData({
     key: 'clientes',
     queryFn: getClientes,
     dataType: {} as Cliente,
   })
+
+  const { mutateAsync, isSuccess, error } = useMutation(
+    ['createCliente'],
+    createCliente,
+    {
+      onSuccess: () => afterAction(),
+    },
+  )
 
   const afterAction = () => {
     queryClient.invalidateQueries(['clientes'])
@@ -46,36 +55,41 @@ export function ClientList() {
 
   const handleCreateCliente = async (data: Cliente) => {
     try {
-      await createCliente(data)
-      afterAction()
+      await mutateAsync(data)
     } catch (error) {
       const { response } = error as any
       console.log(response)
     }
   }
 
-  const openProfile = (id: number) => {
+  const openDetails = (id: number) => {
     setClienteId(id)
-    setOpenClienteProfile(true)
+    setOpenClienteDetails(true)
   }
 
   if (isFetching) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <h1>Loading...</h1>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
-    <Box width="100%" pl={12} pr={4}>
+    <Box
+      display="flex"
+      flexDirection="column"
+      height="100%"
+      width="100%"
+      alignItems="center"
+      justifyContent="flex-start"
+    >
+      <SnackBarComponent
+        open={isSuccess}
+        message={
+          isSuccess
+            ? 'Cliente cadastrado com sucesso!'
+            : 'Erro ao cadastrar cliente!'
+        }
+        severity={error ? 'error' : 'success'}
+      />
+
       <Modal open={openClienteForm} onClose={() => setOpenClienteForm(false)}>
         <ClienteForm
           titleForm="Cadastrar novo cliente"
@@ -85,20 +99,24 @@ export function ClientList() {
       </Modal>
 
       <Modal
-        open={openClienteProfile}
-        onClose={() => setOpenClienteProfile(false)}
+        open={openClienteDetails}
+        onClose={() => setOpenClienteDetails(false)}
       >
-        <ClienteProfile onClose={() => setOpenClienteProfile(false)} id={clienteId} />
+        <ClienteDetails
+          onClose={() => setOpenClienteDetails(false)}
+          id={clienteId}
+        />
       </Modal>
 
-      <Header
-        title="Clientes"
-        subTitle="Lista de clientes cadastrados"
-        handleClick={() => setOpenClienteForm(true)}
+      <DataListComponent
+        headerTitle="Clientes"
+        headerSubTitle="Lista de clientes cadastrados"
+        handleClickItem={openDetails}
         hasButton
+        handleClickHeader={() => setOpenClienteForm(true)}
+        data={clientes}
+        columns={columns}
       />
-
-      <DataList handleClick={openProfile} data={clientes} columns={columns} />
     </Box>
   )
 }

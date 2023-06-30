@@ -1,16 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { Deslocamento } from '@/utils/types'
 import { preFetchData, useFetchData } from '@/lib/queryClient'
 import { Modal } from '@/components/Modal'
-import { Header } from '@/components/Header'
-import { DataList } from '@/components/DataList'
+import { DataListComponent } from '@/components/DataList'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { DeslocamentoForm } from '@/components/deslocamentos/DeslocamentoForm'
 import { DeslocamentoDetail } from '@/components/deslocamentos/DeslocamentoDetail'
-import { DeslocamentoEditForm } from '@/components/deslocamentos/DeslocamentoEditForm'
 import { getDeslocamentos } from '@/resources/deslocamentos'
 import { getClientes } from '@/resources/cliente'
 import { getCondutores } from '@/resources/condutor'
@@ -58,7 +56,7 @@ export function DeslocamentosList() {
     setOpenFormDeslocamento(!openFormDeslocamento)
   }
 
-  const handleCloseDetails= async () => {
+  const handleCloseDetails = async () => {
     setOpenDeslocamentoDetails(false)
   }
 
@@ -70,22 +68,11 @@ export function DeslocamentosList() {
   }
 
   if (isFetching) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <h1>Loading...</h1>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
-    <Box width="100%" pl={12} pr={4}>
+    <>
       <Modal
         open={openFormDeslocamento}
         onClose={() => setOpenFormDeslocamento(false)}
@@ -103,18 +90,15 @@ export function DeslocamentosList() {
         />
       </Modal>
 
-      <Header
-        title="Deslocamentos"
-        subTitle="Lista de deslocamentos"
-        handleClick={openDeslocamentoForm}
+      <DataListComponent
+        headerTitle="Deslocamentos"
+        headerSubTitle="Lista de deslocamentos"
         hasButton
-      />
-
-      <DataList
-        handleClick={openDeslocamentoDetails}
+        handleClickHeader={openDeslocamentoForm}
+        handleClickItem={openDeslocamentoDetails}
         data={deslocamentos}
         columns={columns}
       />
-    </Box>
+    </>
   )
 }

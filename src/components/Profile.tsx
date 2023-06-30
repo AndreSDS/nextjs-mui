@@ -1,6 +1,6 @@
 'use client'
 
-import { FC, ReactComponentElement, ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 import {
   Box,
   CardContent,
@@ -15,11 +15,10 @@ import { Delete, Edit } from '@mui/icons-material'
 import { stringToColor } from '@/utils/stringToColor'
 
 type Props = {
-  openEditForm: () => void
-  onDelete: () => void
-  form?: ReactComponentElement<FC> //remover
   nome: string
   numeroDocumento: string
+  openEditForm: () => void
+  onDelete: () => void
   children: ReactNode
 }
 

@@ -1,8 +1,9 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { Box, Button, Stack } from '@mui/material'
+import { Box, Stack } from '@mui/material'
 import { Header } from '@/components/Header'
+import { ButtonComponent } from '@/components/ButtonComponent'
 import { Cliente, Condutor, Deslocamento } from '@/utils/types'
 
 type Props = {
@@ -38,18 +39,12 @@ export const Form = ({
       <Stack spacing={3}>
         {children}
 
-        <Button
+        <ButtonComponent
+          textButton={textSubmitBuntton}
           disabled={isLoading}
           type="submit"
-          sx={{
-            alignSelf: 'flex-end',
-            marginTop: '1.5rem',
-          }}
           variant="contained"
-          color="primary"
-        >
-          {textSubmitBuntton}
-        </Button>
+        />
       </Stack>
     </Box>
   )

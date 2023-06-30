@@ -32,7 +32,7 @@ const menuNavItems = [
   {
     name: 'Clientes',
     icon: <AccountBox />,
-    href: '/',
+    href: '/clientes',
   },
   {
     name: 'Condutores',

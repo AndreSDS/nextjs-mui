@@ -1,9 +1,23 @@
-export function formatDateHour(date: string | Date) {
-    const dateObj = new Date(date)
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 
-    return new Intl.DateTimeFormat('pt-BR', {
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault('America/Sao_Paulo');
+
+export function formatISODateToUTC(date: string | Date) {
+    return dayjs(date).format()
+}
+
+export function formatDateToString(date: string | Date) {
+    const newDate = new Date(date)
+
+    const formatedDate = Intl.DateTimeFormat('pt-BR', {
         hour: 'numeric',
-        minute: "numeric",
+        minute: 'numeric',
         hour12: true
-    }).format(dateObj)
+    }).format(newDate)
+
+    return formatedDate;
 }

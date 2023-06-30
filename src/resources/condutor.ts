@@ -4,66 +4,60 @@ import { Condutor } from "@/utils/types";
 export async function getCondutores(): Promise<Condutor[]> {
     const response = await api.get('/Condutor')
 
-    if (response.status === 404) {
+    if (response.status !== 200) {
         return [];
     }
 
-    return response.data;
+    const { data } = response
+
+    return data;
 }
 
 export async function getCondutorById(id: string): Promise<Condutor> {
-    const response = await api.get(`/Condutor/${id}`);
+    const response = await api.get(`/Condutor/${id}`)
 
-    if (response.status === 404) {
+    if (response.status !== 200) {
         return {} as Condutor;
     }
 
-    return response.data;
+    const { data } = response
+
+    return data;
 }
 
-export async function createCondutor(condutor: Condutor): Promise<Condutor> {
-    const response = await api.post('/Condutor', {
-        body: JSON.stringify(condutor)
-    })
+export async function createCondutor(condutor: Condutor): Promise<number> {
+    const response = await api.post('/Condutor', condutor)
 
-    if (response.status === 404) {
-        return {} as Condutor;
+    if (response.status !== 200) {
+        return response.status;
     }
 
-    const { data } = response;
-
-    const condutorCriado: Condutor = {
-        id: data,
-        ...condutor,
-    }
-
-    return condutorCriado;
+    return response.data
 }
 
 export async function updateCondutor(condutor: Condutor): Promise<Condutor> {
-    const response = await api.put(`/Condutor/${condutor.id}`, {
-        body: JSON.stringify(condutor)
-    })
+    const condutorToUpdate = {
+        ...condutor,
+        nome: null,
+        numeroHabilitacao: null
+    }
 
-    if (response.status === 404) {
+    const response = await api.put(`/Condutor/${condutor.id}`, condutorToUpdate)
+    if (response.status !== 200) {
         return {} as Condutor;
     }
 
     return condutor;
 }
 
-export async function deleteCondutor(id: string): Promise<{
-    message: string
-}> {
-    const response = await api.delete(`/Condutor/${id}`)
+export async function deleteCondutor(id: number): Promise<number> {
+    const response = await api.delete(`/Condutor/${id}`, {
+        data: { id }
+    })
 
-    if (response.status === 404) {
-        return {
-            message: 'Condutor não encontrado'
-        };
+    if (response.status !== 200) {
+        return response.status;
     }
 
-    return {
-        message: 'Condutor excluído com sucesso'
-    }
+    return response.data
 }

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
-import { Delete, Edit } from '@mui/icons-material'
-import { getStoredItem, queryClient } from '@/lib/queryClient'
+import { Box, Divider, Paper, Stack, Typography } from '@mui/material'
+import { getStoredItem, queryClient, useMutation } from '@/lib/queryClient'
 import { deleteVeiculo, updateVeiculo } from '@/resources/veiculo'
 import { Veiculo } from '@/utils/types'
 import { Modal } from '@/components/Modal'
 import { VeiculoForm } from '@/components/veiculos/VeiculoForm'
+import { ButtonComponent } from '@/components/ButtonComponent'
+import { SnackBarComponent } from '../SnackBarComponent'
 
 type Props = {
   id: number
@@ -16,9 +17,28 @@ type Props = {
 
 export function VeiculoDetails({ id, handleClose }: Props) {
   const [openEditForm, setOpenEditForm] = useState(false)
-  const veiculo: Veiculo = getStoredItem('veiculos', id)
+  const veiculo = getStoredItem('veiculos', id) as Veiculo
 
   const { id: veiculoId, placa, marcaModelo, anoFabricacao, kmAtual } = veiculo
+
+  const {
+    mutateAsync: updating,
+    isSuccess: updated,
+    isError: failUpdate,
+  } = useMutation(['veiculos'], updateVeiculo, {
+    onSuccess: () => afterAction(),
+  })
+
+  const {
+    mutateAsync: deleting,
+    isSuccess: deleted,
+    isError: failDelete,
+  } = useMutation(['veiculos'], deleteVeiculo, {
+    onSuccess: () => {
+      afterAction()
+      handleClose()
+    },
+  })
 
   const onEdit = () => {
     setOpenEditForm(true)
@@ -27,7 +47,6 @@ export function VeiculoDetails({ id, handleClose }: Props) {
   const afterAction = () => {
     queryClient.invalidateQueries(['veiculos'])
     setOpenEditForm(false)
-    handleClose()
   }
 
   const alterarVeiculo = async (veiculo: Veiculo) => {
@@ -36,8 +55,7 @@ export function VeiculoDetails({ id, handleClose }: Props) {
       ...veiculo,
     }
     try {
-      await updateVeiculo(veiculoToUpdate)
-      afterAction()
+      await updating(veiculoToUpdate)
     } catch (error) {
       const { response } = error as any
       console.log(response)
@@ -46,12 +64,18 @@ export function VeiculoDetails({ id, handleClose }: Props) {
 
   const deletarVeiculo = async () => {
     try {
-      await deleteVeiculo(id)
-      afterAction()
+      await deleting(id)
     } catch (error) {
       const { response } = error as any
       console.log(response)
     }
+  }
+
+  const snackMessages = {
+    updated: 'Veículo encerrado com sucesso!',
+    deleted: 'Veículo deletado com sucesso!',
+    failUpdate: 'Erro ao encerrar veículo!',
+    failDelete: 'Erro ao deletar veículo!',
   }
 
   return (
@@ -62,6 +86,18 @@ export function VeiculoDetails({ id, handleClose }: Props) {
       height="100%"
       width="100%"
     >
+      <SnackBarComponent
+        open={updated}
+        message={updated ? snackMessages.updated : snackMessages.failUpdate}
+        severity={failUpdate ? 'error' : 'success'}
+      />
+
+      <SnackBarComponent
+        open={deleted}
+        message={deleted ? snackMessages.deleted : snackMessages.failDelete}
+        severity={failDelete ? 'error' : 'success'}
+      />
+
       <Modal open={openEditForm} onClose={() => setOpenEditForm(false)}>
         <VeiculoForm
           titleForm="Alterar Veículo"
@@ -98,33 +134,19 @@ export function VeiculoDetails({ id, handleClose }: Props) {
         <Divider />
 
         <Stack direction="row" justifyContent="flex-end" spacing={3}>
-          <Button
+          <ButtonComponent
+            textButton="Deletar"
+            hasIcon="delete"
             onClick={deletarVeiculo}
             disabled={false}
-            variant="outlined"
-            color="error"
-            startIcon={<Delete />}
-            sx={{
-              alignSelf: 'flex-end',
-              marginTop: '1.5rem',
-            }}
-          >
-            Deletar
-          </Button>
+          />
 
-          <Button
+          <ButtonComponent
+            textButton="Editar"
+            hasIcon="edit"
             onClick={onEdit}
             disabled={false}
-            variant="contained"
-            color="info"
-            startIcon={<Edit />}
-            sx={{
-              alignSelf: 'flex-end',
-              marginTop: '1.5rem',
-            }}
-          >
-            Editar
-          </Button>
+          />
         </Stack>
       </Paper>
     </Box>

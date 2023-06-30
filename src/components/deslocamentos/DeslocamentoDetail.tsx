@@ -1,20 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
+import { Box, Divider, Paper, Stack, Typography } from '@mui/material'
+import { Alarm, AlarmOn, Place, WhereToVote } from '@mui/icons-material'
+import { getStoredItem, queryClient, useMutation } from '@/lib/queryClient'
 import {
-  Alarm,
-  AlarmOn,
-  Delete,
-  Edit,
-  Place,
-  WhereToVote,
-} from '@mui/icons-material'
-import { getStoredItem, queryClient } from '@/lib/queryClient'
-import { deleteDeslocamento } from '@/resources/deslocamentos'
-import { DeslocamentoDetails, DeslocamentoEdit } from '@/utils/types'
+  deleteDeslocamento,
+  encerrarDeslocamento,
+} from '@/resources/deslocamentos'
+import {
+  Cliente,
+  Condutor,
+  DeslocamentoDetails,
+  DeslocamentoEdit,
+  Veiculo,
+} from '@/utils/types'
 import { Modal } from '@/components/Modal'
 import { DeslocamentoEditForm } from '@/components/deslocamentos/DeslocamentoEditForm'
+import { ButtonComponent } from '@/components/ButtonComponent'
+import { SnackBarComponent } from '@/components/SnackBarComponent'
 
 type Props = {
   id: number
@@ -23,17 +27,17 @@ type Props = {
 
 export function DeslocamentoDetail({ id, handleClose }: Props) {
   const [openEditForm, setOpenEditForm] = useState(false)
-  const deslocamentoDetails: DeslocamentoDetails = getStoredItem(
+  const deslocamentoDetails = getStoredItem(
     'deslocamentos',
     id,
-  )
-  const cliente = getStoredItem('clientes', id)
-  const condutor = getStoredItem('condutores', id)
-  const veiculo = getStoredItem('veiculos', id)
+  ) as DeslocamentoDetails
+  const cliente = getStoredItem('clientes', id) as Cliente
+  const condutor = getStoredItem('condutores', id) as Condutor
+  const veiculo = getStoredItem('veiculos', id) as Veiculo
 
   deslocamentoDetails.nomeCliente = cliente.nome
   deslocamentoDetails.nomeCondutor = condutor.nome
-  deslocamentoDetails.nomeVeiculo = veiculo.nome
+  deslocamentoDetails.nomeVeiculo = veiculo.marcaModelo
 
   const {
     kmInicial,
@@ -51,20 +55,39 @@ export function DeslocamentoDetail({ id, handleClose }: Props) {
   const afterAction = () => {
     queryClient.invalidateQueries(['deslocamentos'])
     setOpenEditForm(false)
-    handleClose()
   }
+
+  const {
+    mutateAsync: updating,
+    isSuccess: updated,
+    error: failUpdate,
+  } = useMutation(['deslocamentos'], encerrarDeslocamento, {
+    onSuccess: () => {
+      afterAction()
+    },
+  })
+
+  const {
+    mutateAsync: deleting,
+    isSuccess: deleted,
+    error: failDelete,
+  } = useMutation(['deslocamentos'], deleteDeslocamento, {
+    onSuccess: () => {
+      afterAction()
+      handleClose()
+    },
+  })
 
   const onDelete = async () => {
     try {
-      await deleteDeslocamento(id)
-      afterAction()
+      await deleting(id)
     } catch (error) {
       const { response } = error as any
       console.log(response.data, response.status)
     }
   }
 
-  const encerrarDeslocamento = async (deslocamento: DeslocamentoEdit) => {
+  const handleCncerrarDeslocamento = async (deslocamento: DeslocamentoEdit) => {
     try {
       if (!deslocamento.fimDeslocamento) {
         deslocamento.fimDeslocamento = new Date().toISOString()
@@ -74,11 +97,18 @@ export function DeslocamentoDetail({ id, handleClose }: Props) {
         ...deslocamento,
       }
 
-      await encerrarDeslocamento(deslocamentoEdit)
+      await updating(deslocamentoEdit)
     } catch (error) {
       const { response } = error as any
       console.log(response.data, response.status)
     }
+  }
+
+  const snackMessages = {
+    updated: 'Deslocamento encerrado com sucesso!',
+    deleted: 'Deslocamento deletado com sucesso!',
+    failUpdate: 'Erro ao encerrar deslocamento!',
+    failDelete: 'Erro ao deletar deslocamento!',
   }
 
   return (
@@ -89,8 +119,20 @@ export function DeslocamentoDetail({ id, handleClose }: Props) {
       height="100%"
       width="100%"
     >
+      <SnackBarComponent
+        open={updated}
+        message={updated ? snackMessages.updated : snackMessages.failUpdate}
+        severity={failUpdate ? 'error' : 'success'}
+      />
+
+      <SnackBarComponent
+        open={deleted}
+        message={deleted ? snackMessages.deleted : snackMessages.failDelete}
+        severity={failDelete ? 'error' : 'success'}
+      />
+
       <Modal open={openEditForm} onClose={() => setOpenEditForm(false)}>
-        <DeslocamentoEditForm onSubmit={encerrarDeslocamento} />
+        <DeslocamentoEditForm onSubmit={handleCncerrarDeslocamento} />
       </Modal>
 
       <Paper
@@ -179,33 +221,19 @@ export function DeslocamentoDetail({ id, handleClose }: Props) {
         </Stack>
 
         <Stack direction="row" justifyContent="flex-end" spacing={3}>
-          <Button
+          <ButtonComponent
+            textButton="Deletar"
+            hasIcon="delete"
             onClick={onDelete}
             disabled={false}
-            variant="outlined"
-            color="error"
-            startIcon={<Delete />}
-            sx={{
-              alignSelf: 'flex-end',
-              marginTop: '1.5rem',
-            }}
-          >
-            Deletar
-          </Button>
+          />
 
-          <Button
+          <ButtonComponent
+            textButton="Encerrar"
+            hasIcon="edit"
             onClick={() => setOpenEditForm(true)}
             disabled={false}
-            variant="contained"
-            color="info"
-            startIcon={<Edit />}
-            sx={{
-              alignSelf: 'flex-end',
-              marginTop: '1.5rem',
-            }}
-          >
-            Encerrar
-          </Button>
+          />
         </Stack>
       </Paper>
     </Box>

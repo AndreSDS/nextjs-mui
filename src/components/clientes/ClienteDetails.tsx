@@ -5,18 +5,19 @@ import { Box, Stack, Typography } from '@mui/material'
 import { Cliente } from '@/utils/types'
 import { Profile } from '@/components/Profile'
 import { ClienteForm } from '@/components/clientes/ClienteForm'
-import { getStoredItem, queryClient } from '@/lib/queryClient'
+import { getStoredItem, queryClient, useMutation } from '@/lib/queryClient'
 import { deleteCliente, updateCliente } from '@/resources/cliente'
 import { Modal } from '../Modal'
+import { SnackBarComponent } from '../SnackBarComponent'
 
 type Props = {
   id: number
   onClose: () => void
 }
 
-export function ClienteProfile({ id, onClose }: Props) {
+export function ClienteDetails({ id, onClose }: Props) {
   const [openClienteForm, setOpenClienteForm] = useState(false)
-  const cliente = getStoredItem('clientes', id)
+  const cliente = getStoredItem('clientes', id) as Cliente
 
   const {
     nome,
@@ -34,10 +35,25 @@ export function ClienteProfile({ id, onClose }: Props) {
     setOpenClienteForm(false)
   }
 
+  const {
+    mutateAsync: updating,
+    isSuccess: updated,
+    error: failUpdate,
+  } = useMutation(['clientes'], updateCliente, {
+    onSuccess: () => afterAction(),
+  })
+
+  const {
+    mutateAsync: deleting,
+    isSuccess: deleted,
+    error: failDelete,
+  } = useMutation(['clientes'], deleteCliente, {
+    onSuccess: () => afterAction(),
+  })
+
   const handleUpdate = async (data: Cliente) => {
     try {
-      await updateCliente(data)
-      afterAction()
+      await updating(data)
     } catch (error) {
       const { response } = error as any
       console.log(response)
@@ -46,8 +62,7 @@ export function ClienteProfile({ id, onClose }: Props) {
 
   const handleDelete = async () => {
     try {
-      await deleteCliente(id)
-      afterAction()
+      await deleting(id)
       onClose()
     } catch (error) {
       const { response } = error as any
@@ -55,14 +70,34 @@ export function ClienteProfile({ id, onClose }: Props) {
     }
   }
 
+  const snackMessages = {
+    updated: 'Cliente encerrado com sucesso!',
+    deleted: 'Cliente deletado com sucesso!',
+    failUpdate: 'Erro ao encerrar cliente!',
+    failDelete: 'Erro ao deletar cliente!',
+  }
+
   return (
     <Box
       display="flex"
-      alignItems="flex-start"
-      justifyContent="center"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="flex-start"
       height="100%"
       width="400px"
     >
+      <SnackBarComponent
+        open={updated}
+        message={updated ? snackMessages.updated : snackMessages.failUpdate}
+        severity={failUpdate ? 'error' : 'success'}
+      />
+
+      <SnackBarComponent
+        open={deleted}
+        message={deleted ? snackMessages.deleted : snackMessages.failDelete}
+        severity={failDelete ? 'error' : 'success'}
+      />
+
       <Modal open={openClienteForm} onClose={() => setOpenClienteForm(false)}>
         <ClienteForm
           titleForm="Atualizar dados do cliente"

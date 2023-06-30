@@ -1,12 +1,9 @@
 import { useForm } from 'react-hook-form'
-import { Form } from '../Form'
-import { DeslocamentoEdit } from '@/utils/types'
 import { Stack, TextField } from '@mui/material'
-import { LocalizationProvider, MobileTimePicker } from '@mui/x-date-pickers'
-import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo'
-import dayjs from 'dayjs'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { DeslocamentoEdit } from '@/utils/types'
 import { formatISODateToUTC } from '@/utils/formatDate'
+import { Form } from '@/components/Form'
+import { DatePickerComponent } from '@/components/DatePicker'
 
 type Props = {
   onSubmit: (data: DeslocamentoEdit) => void
@@ -40,25 +37,12 @@ export function DeslocamentoEditForm({ onSubmit }: Props) {
           label="Km Final"
         />
 
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer
-            sx={{
-              '& .mui-style-1xhypcz-MuiStack-root': {
-                paddingTop: '0px',
-              },
-            }}
-            components={['MobileTimePicker']}
-          >
-            <DemoItem>
-              <MobileTimePicker
-                onChange={(value: any) => {
-                  setValue('fimDeslocamento', formatISODateToUTC(value))
-                }}
-                defaultValue={dayjs()}
-              />
-            </DemoItem>
-          </DemoContainer>
-        </LocalizationProvider>
+        <DatePickerComponent
+          isHour
+          onChange={(value) =>
+            setValue('fimDeslocamento', formatISODateToUTC(value))
+          }
+        />
       </Stack>
 
       <TextField

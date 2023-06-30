@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { queryClient, useFetchData } from '@/lib/queryClient'
 import { createVeiculo, getVeiculos } from '@/resources/veiculo'
 import { Veiculo } from '@/utils/types'
 import { Modal } from '@/components/Modal'
-import { Header } from '@/components/Header'
-import { DataList } from '@/components/DataList'
+import { DataListComponent } from '@/components/DataList'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { VeiculoForm } from '@/components/veiculos/VeiculoForm'
 import { VeiculoDetails } from '@/components/veiculos/VeiculoDetails'
 
@@ -66,22 +65,11 @@ export function VeiculosList() {
   }
 
   if (isFetching) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <h1>Loading...</h1>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
-    <Box width="100%" pl={12} pr={4}>
+    <>
       <Modal open={openVeiculoForm} onClose={() => setOpenVeiculoForm(false)}>
         <VeiculoForm
           titleForm="Cadastrar Veículo"
@@ -101,14 +89,15 @@ export function VeiculosList() {
         />
       </Modal>
 
-      <Header
-        title="Veículos"
-        subTitle="Lista de veículos cadastrados"
-        handleClick={() => setOpenVeiculoForm(true)}
+      <DataListComponent
+        headerTitle="Veículos"
+        headerSubTitle="Lista de veículos cadastrados"
         hasButton
+        handleClickHeader={() => setOpenVeiculoForm(true)}
+        handleClickItem={openDetails}
+        data={veiculos}
+        columns={columns}
       />
-
-      <DataList handleClick={openDetails} data={veiculos} columns={columns} />
-    </Box>
+    </>
   )
 }

@@ -4,30 +4,24 @@ import { useForm } from 'react-hook-form'
 import { MenuItem, Stack, TextField } from '@mui/material'
 import { Condutor } from '@/utils/types'
 import { Form } from '@/components/Form'
-
-type FormInputs = {
-  nome: string
-  numeroHabilitacao: string
-  catergoriaHabilitacao: string
-  vencimentoHabilitacao: String
-}
+import { DatePickerComponent } from '../DatePicker'
 
 const categoryOptions = [
   {
-    value: 'CPF',
-    label: 'CPF',
+    value: 'a',
+    label: 'Categoria A',
   },
   {
-    value: 'RG',
-    label: 'RG',
+    value: 'b',
+    label: 'Categoria B',
   },
   {
-    value: 'CNH',
-    label: 'CNH',
+    value: 'c',
+    label: 'Categoria C',
   },
   {
-    value: 'Outro',
-    label: 'Outro',
+    value: 'd',
+    label: 'Categoria D',
   },
 ]
 
@@ -40,10 +34,14 @@ export function CondutorForm({ initialValues, onSubmit }: Props) {
   const {
     register,
     handleSubmit,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
-  } = useForm<FormInputs>({
+  } = useForm<Condutor>({
     defaultValues: initialValues,
   })
+
+  const isEditing = !!initialValues?.id
 
   return (
     <Form
@@ -53,27 +51,29 @@ export function CondutorForm({ initialValues, onSubmit }: Props) {
       textSubmitBuntton="Cadastrar"
       isLoading={isSubmitting}
     >
-      <TextField
-        {...register('nome', {
-          required: true,
-        })}
-        error={!!errors.nome}
-        fullWidth
-        id="nome"
-        label="Nome"
-      />
+      {isEditing ? null : (
+        <TextField
+          {...register('nome', {
+            required: true,
+          })}
+          error={!!errors.nome}
+          fullWidth
+          id="nome"
+          label="Nome"
+        />
+      )}
 
       <Stack spacing={2} direction="row">
         <TextField
           select
-          {...register('catergoriaHabilitacao', {
-            required: true,
+          {...register('catergoriaHabilitacao',{
+            required: !isEditing,
           })}
           error={!!errors.catergoriaHabilitacao}
           sx={{ flex: 0.5 }}
-          id="tipoDocumento"
-          label="Documento"
-          defaultValue={categoryOptions[3].value}
+          id="catergoriaHabilitacao"
+          label="Categoria"
+          defaultValue=""
         >
           {categoryOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
@@ -82,25 +82,22 @@ export function CondutorForm({ initialValues, onSubmit }: Props) {
           ))}
         </TextField>
 
-        <TextField
-          {...register('numeroHabilitacao', {
-            required: true,
-          })}
-          error={!!errors.numeroHabilitacao}
-          sx={{ flex: 1 }}
-          id="numeroHabilitacao"
-          label="Número da Habilitação"
-        />
+        {isEditing ? null : (
+          <TextField
+            {...register('numeroHabilitacao', {
+              required: true,
+            })}
+            error={!!errors.numeroHabilitacao}
+            sx={{ flex: 1 }}
+            id="numeroHabilitacao"
+            label="Número da Habilitação"
+          />
+        )}
       </Stack>
 
-      <TextField
-        {...register('vencimentoHabilitacao', {
-          required: true,
-        })}
-        error={!!errors.vencimentoHabilitacao}
-        fullWidth
-        id="vencimentoHabilitacao"
+      <DatePickerComponent
         label="Vencimento da Habilitação"
+        onChange={(value) => setValue('vencimentoHabilitacao', value)}
       />
     </Form>
   )

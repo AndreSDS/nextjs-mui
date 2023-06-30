@@ -1,17 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Box } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useQuery } from '@/lib/queryClient'
 import { Condutor } from '@/utils/types'
-import { Modal } from '@/components/Modal'
-import { Header } from '@/components/Header'
-import { DataList } from '@/components/DataList'
+import { queryClient, useFetchData, useMutation } from '@/lib/queryClient'
 import { createCondutor, getCondutores } from '@/resources/condutor'
+import { SnackBarComponent } from '@/components/SnackBarComponent'
+import { Modal } from '@/components/Modal'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { DataListComponent } from '@/components/DataList'
 import { CondutorForm } from '@/components/condutores/CondutorForm'
-import { useFetchData } from '@/hooks/useFetchData'
-import { useDataStored } from '@/hooks/useDataStored'
+import { CondutorDetails } from '@/components/condutores/CondutorDetails'
+import { Box } from '@mui/material'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -30,52 +30,89 @@ const columns: GridColDef[] = [
 ]
 
 export function CondutoresList() {
-  const [open, setOpen] = useState(false)
-  const { data: condutores, isFetching } = useFetchData(
-    'condutores',
-    getCondutores
-  )
-  const { mutateDataStored } = useDataStored('condutores', {} as Condutor, createCondutor)
+  const [openFormCondutor, setOpenFormCondutor] = useState(false)
+  const [openDetails, setOpenDetails] = useState(false)
+  const [condutorId, setCondutorId] = useState<number>(0)
+  const { data: condutores, isFetching } = useFetchData({
+    key: 'condutores',
+    queryFn: getCondutores,
+    dataType: {} as Condutor,
+  })
 
-  function handleOpenModal() {
-    setOpen(!open)
+  const {
+    mutateAsync: creating,
+    isSuccess: created,
+    error: failCreate,
+  } = useMutation(['condutores'], createCondutor, {
+    onSuccess: () => afterAction(),
+  })
+
+  const afterAction = () => {
+    queryClient.invalidateQueries(['condutores'])
+    setOpenFormCondutor(false)
   }
 
-  const onSubmit = async (data: Condutor) => {
-    const condutor = mutateDataStored(data)
+  function handleOpenModal() {
+    setOpenFormCondutor(!openFormCondutor)
+  }
 
-    handleOpenModal()
+  const handleCreateCondutor = async (data: Condutor) => {
+    try {
+      await creating(data)
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
+
+  const openCondutorDetails = (id: number) => {
+    setCondutorId(id)
+    setOpenDetails(true)
   }
 
   if (isFetching) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <h1>Loading...</h1>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
-    <Box width="100%" pl={12} pr={4}>
-      <Modal open={open} onClose={handleOpenModal}>
-        <CondutorForm onSubmit={onSubmit} />
-      </Modal>
-
-      <Header
-        title="Condutores"
-        subTitle="Lista de condutores cadastrados"
-        handleClick={handleOpenModal}
-        hasButton
+    <Box
+      display="flex"
+      flexDirection="column"
+      height="100%"
+      width="100%"
+      alignItems="center"
+      justifyContent="flex-start"
+    >
+      <SnackBarComponent
+        open={created}
+        message={
+          created
+            ? 'Condutor cadastrado com sucesso!'
+            : 'Ocorreu um erro ao cadastrar o condutor!'
+        }
+        severity={failCreate ? 'error' : 'success'}
       />
 
-      <DataList route="condutores" data={condutores} columns={columns} />
+      <Modal open={openFormCondutor} onClose={handleOpenModal}>
+        <CondutorForm onSubmit={handleCreateCondutor} />
+      </Modal>
+
+      <Modal open={openDetails} onClose={() => setOpenDetails(false)}>
+        <CondutorDetails
+          id={condutorId}
+          onClose={() => setOpenDetails(false)}
+        />
+      </Modal>
+
+      <DataListComponent
+        headerTitle="Condutores"
+        headerSubTitle="Lista de condutores cadastrados"
+        hasButton
+        handleClickHeader={handleOpenModal}
+        handleClickItem={openCondutorDetails}
+        data={condutores}
+        columns={columns}
+      />
     </Box>
   )
 }
