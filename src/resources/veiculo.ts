@@ -42,7 +42,7 @@ export async function updateVeiculo(veiculo: Veiculo): Promise<string> {
 }
 
 export async function deleteVeiculo(id: number): Promise<number> {
-   const response = await api.delete(`/Veiculo/${id}`, { data: id });
+   const response = await api.delete(`/Veiculo/${id}`, { data: {id} });
 
    if (response.status !== 200) {
       return response.status;

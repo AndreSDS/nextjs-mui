@@ -1,77 +1,22 @@
 'use client'
 
-import { useState } from 'react'
-import { Box, Stack, Typography, colors } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { Condutor } from '@/utils/types'
-import { getStoredItem, queryClient, useMutation } from '@/lib/queryClient'
-import { deleteCondutor, updateCondutor } from '@/resources/condutor'
-import { CondutorForm } from '@/components/condutores/CondutorForm'
 import { Profile } from '@/components/Profile'
-import { Modal } from '../Modal'
-import { SnackBarComponent } from '../SnackBarComponent'
 
 type Props = {
-  id: number
-  onClose: () => void
+  condutor: Condutor
+  openEditForm: () => void
+  onDelete: () => void
 }
 
-export function CondutorDetails({ id, onClose }: Props) {
-  const [openCondutorForm, setOpenCondutorForm] = useState(false)
-  const condutor = getStoredItem('condutores', id) as Condutor
-
+export function CondutorDetails({ condutor, openEditForm, onDelete }: Props) {
   const {
     nome,
     numeroHabilitacao,
     catergoriaHabilitacao,
     vencimentoHabilitacao,
   } = condutor
-
-  const {
-    mutateAsync: updating,
-    isSuccess: updated,
-    error: failUpdate,
-  } = useMutation(['condutor'], updateCondutor, {
-    onSuccess: () => afterAction(),
-  })
-
-  const {
-    mutateAsync: deleting,
-    isSuccess: deleted,
-    error: failDelete,
-  } = useMutation(['condutor'], deleteCondutor, {
-    onSuccess: () => afterAction(),
-  })
-
-  const afterAction = () => {
-    queryClient.invalidateQueries(['condutores'])
-    setOpenCondutorForm(false)
-  }
-
-  const handleEditCondutor = async (data: Condutor) => {
-    try {
-      await updating(data)
-    } catch (error) {
-      const { response } = error as any
-      console.log(response)
-    }
-  }
-
-  const handleDelete = async () => {
-    try {
-      await deleting(id)
-      onClose()
-    } catch (error) {
-      const { response } = error as any
-      console.log(response)
-    }
-  }
-
-  const snackMessages = {
-    updated: 'Condutor encerrado com sucesso!',
-    deleted: 'Condutor deletado com sucesso!',
-    failUpdate: 'Erro ao encerrar condutor!',
-    failDelete: 'Erro ao deletar condutor!',
-  }
 
   return (
     <Box
@@ -82,28 +27,12 @@ export function CondutorDetails({ id, onClose }: Props) {
       height="100%"
       width="400px"
     >
-      <SnackBarComponent
-        open={updated}
-        message={updated ? snackMessages.updated : snackMessages.failUpdate}
-        severity={failUpdate ? 'error' : 'success'}
-      />
-
-      <SnackBarComponent
-        open={deleted}
-        message={deleted ? snackMessages.deleted : snackMessages.failDelete}
-        severity={failDelete ? 'error' : 'success'}
-      />
-
-      <Modal open={openCondutorForm} onClose={() => setOpenCondutorForm(false)}>
-        <CondutorForm onSubmit={handleEditCondutor} initialValues={condutor} />
-      </Modal>
-
       {!condutor ? null : (
         <Profile
           nome={nome}
-          numeroDocumento={numeroHabilitacao}
-          openEditForm={() => setOpenCondutorForm(true)}
-          onDelete={handleDelete}
+          numeroDocumento={`${numeroHabilitacao} - ${catergoriaHabilitacao}`}
+          openEditForm={openEditForm}
+          onDelete={onDelete}
         >
           <Typography
             variant="h3"

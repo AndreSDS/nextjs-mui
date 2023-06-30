@@ -26,11 +26,18 @@ const categoryOptions = [
 ]
 
 type Props = {
+  titleForm: string
+  subTitleForm: string
   initialValues?: Condutor
   onSubmit: (data: Condutor) => void
 }
 
-export function CondutorForm({ initialValues, onSubmit }: Props) {
+export function CondutorForm({
+  titleForm,
+  subTitleForm,
+  initialValues,
+  onSubmit,
+}: Props) {
   const {
     register,
     handleSubmit,
@@ -46,8 +53,8 @@ export function CondutorForm({ initialValues, onSubmit }: Props) {
   return (
     <Form
       onSubmit={handleSubmit(onSubmit)}
-      titleForm="Cadastro de Condutor"
-      subTitleForm="Preencha os campos para cadastrar um condutor"
+      titleForm={titleForm}
+      subTitleForm={subTitleForm}
       textSubmitBuntton="Cadastrar"
       isLoading={isSubmitting}
     >
@@ -65,22 +72,14 @@ export function CondutorForm({ initialValues, onSubmit }: Props) {
 
       <Stack spacing={2} direction="row">
         <TextField
-          select
-          {...register('catergoriaHabilitacao',{
+          {...register('catergoriaHabilitacao', {
             required: !isEditing,
           })}
           error={!!errors.catergoriaHabilitacao}
           sx={{ flex: 0.5 }}
           id="catergoriaHabilitacao"
           label="Categoria"
-          defaultValue=""
-        >
-          {categoryOptions.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
+        />
 
         {isEditing ? null : (
           <TextField

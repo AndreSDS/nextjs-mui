@@ -4,20 +4,18 @@ import { Box, MenuItem, Stack, TextField } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { Cliente, Condutor, DeslocamentoCreate, Veiculo } from '@/utils/types'
 import { formatISODateToUTC } from '@/utils/formatDate'
-import { getStoredData, queryClient, useMutation } from '@/lib/queryClient'
+import { getStoredData } from '@/lib/queryClient'
 import { preFetchData } from '@/lib/queryClient'
 import { getClientes } from '@/resources/cliente'
 import { getCondutores } from '@/resources/condutor'
-import { iniciarDeslocamento } from '@/resources/deslocamentos'
 import { Form } from '@/components/Form'
 import { DatePickerComponent } from '../DatePicker'
-import { SnackBarComponent } from '../SnackBarComponent'
 
 type Props = {
-  handleClose: () => void
+  onSubmit: (data: DeslocamentoCreate) => Promise<void>
 }
 
-export function DeslocamentoForm({ handleClose }: Props) {
+export function DeslocamentoForm({ onSubmit }: Props) {
   const {
     register,
     handleSubmit,
@@ -48,48 +46,14 @@ export function DeslocamentoForm({ handleClose }: Props) {
     label: condutor.nome,
   }))
 
-  const {
-    mutateAsync: creating,
-    isSuccess: created,
-    error: failCreate,
-  } = useMutation(['deslocamentos'], iniciarDeslocamento, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['deslocamentos'])
-      handleClose()
-    },
-  })
-
-  const novoDeslocamento = async (deslocamento: DeslocamentoCreate) => {
-    try {
-      if (!deslocamento.inicioDeslocamento) {
-        deslocamento.inicioDeslocamento = new Date().toISOString()
-      }
-
-      await creating(deslocamento)
-    } catch (error) {
-      const { response } = error as any
-      console.log(response.data, response.status)
-    }
-  }
-
   return (
     <Box display="flex" flexDirection="column">
-      <SnackBarComponent
-        open={created}
-        message={
-          created
-            ? 'Deslocalmento iniciado com sucesso!'
-            : 'Ocorreu um erro ao iniciar o deslocamento!'
-        }
-        severity={failCreate ? 'error' : 'success'}
-      />
-
       <Form
         titleForm="Iniciar Deslocamento"
         subTitleForm="Preencha os campos para iniciar um deslocamento"
         textSubmitBuntton="Iniciar"
         isLoading={isSubmitting}
-        onSubmit={handleSubmit(novoDeslocamento)}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <Stack direction="row" spacing={2}>
           <TextField

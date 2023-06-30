@@ -5,19 +5,10 @@ export async function getClientes(): Promise<Cliente[]> {
     const response = await api.get('/Cliente')
 
     if (response.status !== 200) {
-        return [];
+        return [] as Cliente[];
     }
 
-    const { data } = response;
-
-    const clientes = data.map((cliente: Cliente) => {
-        return {
-            ...cliente,
-            logradouro: `${cliente.logradouro}, ${cliente.numero} - ${cliente.bairro}`,
-        }
-    })
-
-    return clientes;
+    return response.data
 }
 
 export async function getClienteById(id: string): Promise<Cliente> {
@@ -60,7 +51,7 @@ export async function updateCliente(cliente: Cliente): Promise<number> {
 
 export async function deleteCliente(id: number): Promise<number> {
     const response = await api.delete(`/Cliente/${id}`, { data: { id } })
-
+    
     if (response.status !== 200) {
         return response.status;
     }

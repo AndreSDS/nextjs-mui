@@ -3,8 +3,18 @@
 import { useState } from 'react'
 import { GridColDef } from '@mui/x-data-grid'
 import { Condutor } from '@/utils/types'
-import { queryClient, useFetchData, useMutation } from '@/lib/queryClient'
-import { createCondutor, getCondutores } from '@/resources/condutor'
+import {
+  getStoredItem,
+  queryClient,
+  useFetchData,
+  useMutation,
+} from '@/lib/queryClient'
+import {
+  createCondutor,
+  deleteCondutor,
+  getCondutores,
+  updateCondutor,
+} from '@/resources/condutor'
 import { SnackBarComponent } from '@/components/SnackBarComponent'
 import { Modal } from '@/components/Modal'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
@@ -30,48 +40,110 @@ const columns: GridColDef[] = [
 ]
 
 export function CondutoresList() {
-  const [openFormCondutor, setOpenFormCondutor] = useState(false)
+  const [openCondutorForm, setOpenCondutorForm] = useState(false)
   const [openDetails, setOpenDetails] = useState(false)
-  const [condutorId, setCondutorId] = useState<number>(0)
+  const [condutorId, setCondutorId] = useState<any>(null)
   const { data: condutores, isFetching } = useFetchData({
     key: 'condutores',
     queryFn: getCondutores,
     dataType: {} as Condutor,
   })
 
-  const {
-    mutateAsync: creating,
-    isSuccess: created,
-    error: failCreate,
-  } = useMutation(['condutores'], createCondutor, {
-    onSuccess: () => afterAction(),
+  const condutor: Condutor =
+    getStoredItem('condutores', condutorId as number) || ({} as Condutor)
+
+  const afterActions = () => {
+    queryClient.invalidateQueries(['condutores'])
+    setOpenCondutorForm(false)
+    setOpenDetails(false)
+  }
+
+  const creating = useMutation(['condutores'], createCondutor, {
+    onSuccess: () => afterActions(),
   })
 
-  const afterAction = () => {
-    queryClient.invalidateQueries(['condutores'])
-    setOpenFormCondutor(false)
-  }
+  const updating = useMutation(['condutores'], updateCondutor, {
+    onSuccess: () => {
+      setCondutorId(null)
+      afterActions()
+    },
+  })
 
-  function handleOpenModal() {
-    setOpenFormCondutor(!openFormCondutor)
-  }
+  const deleting = useMutation(['condutores'], deleteCondutor, {
+    onSuccess: () => {
+      setCondutorId(null)
+      afterActions()
+    },
+  })
 
   const handleCreateCondutor = async (data: Condutor) => {
     try {
-      await creating(data)
+      await creating.mutateAsync(data)
     } catch (error) {
       const { response } = error as any
       console.log(response)
     }
   }
 
-  const openCondutorDetails = (id: number) => {
+  const handleUpdateCondutor = async (data: Condutor) => {
+    try {
+      await updating.mutateAsync(data)
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
+
+  const handleDeleteCondutor = async () => {
+    try {
+      await deleting.mutateAsync(condutorId)
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
+
+  const handleOpenCondutorForm = () => {
+    setOpenCondutorForm(true)
+  }
+
+  const handleOpenDetails = (id: number) => {
     setCondutorId(id)
     setOpenDetails(true)
   }
 
   if (isFetching) {
     return <LoadingSpinner />
+  }
+
+  const snackMessages = {
+    created: 'Condutor cadastrado com sucesso!',
+    updated: 'Condutor alterado com sucesso!',
+    deleted: 'Condutor deletado com sucesso!',
+    failCreate: 'Erro ao cadastrar condutor!',
+    failUpdate: 'Erro ao alterar condutor!',
+    failDelete: 'Erro ao deletar condutor!',
+  }
+
+  const ModalContent = () => {
+    return (
+      <>
+        {condutorId ? (
+          <CondutorForm
+            titleForm="Atualizar dados do condutor"
+            subTitleForm="Preencha os dados do condutor"
+            initialValues={condutor}
+            onSubmit={handleUpdateCondutor}
+          />
+        ) : (
+          <CondutorForm
+            titleForm="Cadastrar novo condutor"
+            subTitleForm="Preencha os dados do condutor"
+            onSubmit={handleDeleteCondutor}
+          />
+        )}
+      </>
+    )
   }
 
   return (
@@ -84,23 +156,38 @@ export function CondutoresList() {
       justifyContent="flex-start"
     >
       <SnackBarComponent
-        open={created}
+        open={creating.isSuccess || creating.isError}
         message={
-          created
-            ? 'Condutor cadastrado com sucesso!'
-            : 'Ocorreu um erro ao cadastrar o condutor!'
+          creating.isSuccess ? snackMessages.created : snackMessages.failCreate
         }
-        severity={failCreate ? 'error' : 'success'}
+        severity={creating.isSuccess ? 'success' : 'error'}
       />
 
-      <Modal open={openFormCondutor} onClose={handleOpenModal}>
-        <CondutorForm onSubmit={handleCreateCondutor} />
+      <SnackBarComponent
+        open={updating.isSuccess || updating.isError}
+        message={
+          updating.isSuccess ? snackMessages.updated : snackMessages.failUpdate
+        }
+        severity={updating.isSuccess ? 'success' : 'error'}
+      />
+
+      <SnackBarComponent
+        open={deleting.isSuccess || deleting.isError}
+        message={
+          deleting.isSuccess ? snackMessages.deleted : snackMessages.failDelete
+        }
+        severity={deleting.isSuccess ? 'success' : 'error'}
+      />
+
+      <Modal open={openCondutorForm} onClose={() => setOpenCondutorForm(false)}>
+        <ModalContent />
       </Modal>
 
       <Modal open={openDetails} onClose={() => setOpenDetails(false)}>
         <CondutorDetails
-          id={condutorId}
-          onClose={() => setOpenDetails(false)}
+          openEditForm={handleOpenCondutorForm}
+          onDelete={handleDeleteCondutor}
+          condutor={condutor}
         />
       </Modal>
 
@@ -108,8 +195,8 @@ export function CondutoresList() {
         headerTitle="Condutores"
         headerSubTitle="Lista de condutores cadastrados"
         hasButton
-        handleClickHeader={handleOpenModal}
-        handleClickItem={openCondutorDetails}
+        handleClickHeader={handleOpenCondutorForm}
+        handleClickItem={handleOpenDetails}
         data={condutores}
         columns={columns}
       />

@@ -3,8 +3,18 @@
 import { useState } from 'react'
 import { GridColDef } from '@mui/x-data-grid'
 import { Cliente } from '@/utils/types'
-import { queryClient, useFetchData, useMutation } from '@/lib/queryClient'
-import { createCliente, getClientes } from '@/resources/cliente'
+import {
+  getStoredItem,
+  queryClient,
+  useFetchData,
+  useMutation,
+} from '@/lib/queryClient'
+import {
+  createCliente,
+  getClientes,
+  updateCliente,
+  deleteCliente,
+} from '@/resources/cliente'
 import { Modal } from '@/components/Modal'
 import { DataListComponent } from '@/components/DataList'
 import { ClienteForm } from '@/components/clientes/ClienteForm'
@@ -25,7 +35,6 @@ const columns: GridColDef[] = [
     flex: 0.5,
   },
   { field: 'numeroDocumento', headerName: 'Número do Documento', flex: 1 },
-  { field: 'logradouro', headerName: 'Endereço', flex: 1.5 },
   { field: 'cidade', headerName: 'Cidade', flex: 1 },
   { field: 'uf', headerName: 'Estado' },
 ]
@@ -33,42 +42,108 @@ const columns: GridColDef[] = [
 export function ClientList() {
   const [openClienteForm, setOpenClienteForm] = useState(false)
   const [openClienteDetails, setOpenClienteDetails] = useState(false)
-  const [clienteId, setClienteId] = useState<number>(0)
+  const [clienteId, setClienteId] = useState<any>(null)
   const { data: clientes, isFetching } = useFetchData({
     key: 'clientes',
     queryFn: getClientes,
     dataType: {} as Cliente,
   })
 
-  const { mutateAsync, isSuccess, error } = useMutation(
-    ['createCliente'],
-    createCliente,
-    {
-      onSuccess: () => afterAction(),
-    },
-  )
+  const cliente: Cliente =
+    getStoredItem('clientes', clienteId as number) || ({} as Cliente)
 
-  const afterAction = () => {
+  const afterActions = () => {
     queryClient.invalidateQueries(['clientes'])
     setOpenClienteForm(false)
+    setOpenClienteDetails(false)
   }
+
+  const creating = useMutation(['createCliente'], createCliente, {
+    onSuccess: () => afterActions(),
+  })
+
+  const updating = useMutation(['clientes'], updateCliente, {
+    onSuccess: () => {
+      setClienteId(null)
+      afterActions()
+    },
+  })
+
+  const deleting = useMutation(['clientes'], deleteCliente, {
+    onSuccess: () => {
+      setClienteId(null)
+      afterActions()
+    },
+  })
 
   const handleCreateCliente = async (data: Cliente) => {
     try {
-      await mutateAsync(data)
+      await creating.mutateAsync(data)
     } catch (error) {
       const { response } = error as any
       console.log(response)
     }
   }
 
-  const openDetails = (id: number) => {
+  const handleUpdateCliente = async (data: Cliente) => {
+    try {
+      await updating.mutateAsync(data)
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
+
+  const handleDeleteCliente = async () => {
+    try {
+      await deleting.mutateAsync(clienteId)
+    } catch (error) {
+      const { response } = error as any
+      console.log(response)
+    }
+  }
+
+  const handleOpenClienteForm = () => {
+    setOpenClienteForm(true)
+  }
+
+  const handleOpenDetails = (id: number) => {
     setClienteId(id)
     setOpenClienteDetails(true)
   }
 
   if (isFetching) {
     return <LoadingSpinner />
+  }
+
+  const snackMessages = {
+    created: 'Cliente cadastrado com sucesso!',
+    updated: 'Cliente alterado com sucesso!',
+    deleted: 'Cliente deletado com sucesso!',
+    failCreate: 'Erro ao cadastrar cliente!',
+    failUpdate: 'Erro ao alterar cliente!',
+    failDelete: 'Erro ao deletar cliente!',
+  }
+
+  const ModalContent = () => {
+    return (
+      <>
+        {clienteId ? (
+          <ClienteForm
+            titleForm="Atualizar dados do cliente"
+            subTitleForm="Preencha os dados do cliente"
+            initialValues={cliente}
+            onSubmit={handleUpdateCliente}
+          />
+        ) : (
+          <ClienteForm
+            titleForm="Cadastrar novo cliente"
+            subTitleForm="Preencha os dados do cliente"
+            onSubmit={handleCreateCliente}
+          />
+        )}
+      </>
+    )
   }
 
   return (
@@ -81,21 +156,31 @@ export function ClientList() {
       justifyContent="flex-start"
     >
       <SnackBarComponent
-        open={isSuccess}
+        open={creating.isSuccess || creating.isError}
         message={
-          isSuccess
-            ? 'Cliente cadastrado com sucesso!'
-            : 'Erro ao cadastrar cliente!'
+          creating.isSuccess ? snackMessages.created : snackMessages.failCreate
         }
-        severity={error ? 'error' : 'success'}
+        severity={creating.isSuccess ? 'success' : 'error'}
+      />
+
+      <SnackBarComponent
+        open={updating.isSuccess || updating.isError}
+        message={
+          updating.isSuccess ? snackMessages.updated : snackMessages.failUpdate
+        }
+        severity={updating.isSuccess ? 'success' : 'error'}
+      />
+
+      <SnackBarComponent
+        open={deleting.isSuccess || deleting.isError}
+        message={
+          deleting.isSuccess ? snackMessages.deleted : snackMessages.failDelete
+        }
+        severity={deleting.isSuccess ? 'success' : 'error'}
       />
 
       <Modal open={openClienteForm} onClose={() => setOpenClienteForm(false)}>
-        <ClienteForm
-          titleForm="Cadastrar novo cliente"
-          subTitleForm="Preencha os dados do cliente"
-          onSubmit={handleCreateCliente}
-        />
+        <ModalContent />
       </Modal>
 
       <Modal
@@ -103,17 +188,18 @@ export function ClientList() {
         onClose={() => setOpenClienteDetails(false)}
       >
         <ClienteDetails
-          onClose={() => setOpenClienteDetails(false)}
-          id={clienteId}
+          openEditForm={handleOpenClienteForm}
+          onDelete={handleDeleteCliente}
+          cliente={cliente}
         />
       </Modal>
 
       <DataListComponent
         headerTitle="Clientes"
         headerSubTitle="Lista de clientes cadastrados"
-        handleClickItem={openDetails}
+        handleClickItem={handleOpenDetails}
         hasButton
-        handleClickHeader={() => setOpenClienteForm(true)}
+        handleClickHeader={handleOpenClienteForm}
         data={clientes}
         columns={columns}
       />

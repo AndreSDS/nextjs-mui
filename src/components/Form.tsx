@@ -26,6 +26,9 @@ export const Form = ({
 }: Props) => {
   return (
     <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
       component="form"
       autoComplete="off"
       noValidate

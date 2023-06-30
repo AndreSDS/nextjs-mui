@@ -35,19 +35,19 @@ export async function createCondutor(condutor: Condutor): Promise<number> {
     return response.data
 }
 
-export async function updateCondutor(condutor: Condutor): Promise<Condutor> {
+export async function updateCondutor(condutor: Condutor): Promise<number> {
     const condutorToUpdate = {
-        ...condutor,
-        nome: null,
-        numeroHabilitacao: null
+        id: condutor.id,
+        categoriaHabilitacao: condutor.catergoriaHabilitacao,
+        vencimentoHabilitacao: condutor.vencimentoHabilitacao,
     }
 
     const response = await api.put(`/Condutor/${condutor.id}`, condutorToUpdate)
     if (response.status !== 200) {
-        return {} as Condutor;
+        return response.status;
     }
 
-    return condutor;
+    return response.data;
 }
 
 export async function deleteCondutor(id: number): Promise<number> {

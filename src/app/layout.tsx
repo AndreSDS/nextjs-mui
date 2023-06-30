@@ -26,12 +26,15 @@ export default function RootLayout({
             <div
               style={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100vh',
                 width: '100%',
               }}
-            >{children}</div>
+            >
+              {children}
+            </div>
           </main>
         </MainLayout>
       </body>

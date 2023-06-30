@@ -21,19 +21,11 @@ export function VeiculoDetails({ id, handleClose }: Props) {
 
   const { id: veiculoId, placa, marcaModelo, anoFabricacao, kmAtual } = veiculo
 
-  const {
-    mutateAsync: updating,
-    isSuccess: updated,
-    isError: failUpdate,
-  } = useMutation(['veiculos'], updateVeiculo, {
+  const updating = useMutation(['veiculos'], updateVeiculo, {
     onSuccess: () => afterAction(),
   })
 
-  const {
-    mutateAsync: deleting,
-    isSuccess: deleted,
-    isError: failDelete,
-  } = useMutation(['veiculos'], deleteVeiculo, {
+  const deleting = useMutation(['veiculos'], deleteVeiculo, {
     onSuccess: () => {
       afterAction()
       handleClose()
@@ -55,7 +47,7 @@ export function VeiculoDetails({ id, handleClose }: Props) {
       ...veiculo,
     }
     try {
-      await updating(veiculoToUpdate)
+      await updating.mutateAsync(veiculoToUpdate)
     } catch (error) {
       const { response } = error as any
       console.log(response)
@@ -64,7 +56,7 @@ export function VeiculoDetails({ id, handleClose }: Props) {
 
   const deletarVeiculo = async () => {
     try {
-      await deleting(id)
+      await deleting.mutateAsync(id)
     } catch (error) {
       const { response } = error as any
       console.log(response)
@@ -87,15 +79,15 @@ export function VeiculoDetails({ id, handleClose }: Props) {
       width="100%"
     >
       <SnackBarComponent
-        open={updated}
-        message={updated ? snackMessages.updated : snackMessages.failUpdate}
-        severity={failUpdate ? 'error' : 'success'}
+        open={updating.isSuccess || updating.isError}
+        message={updating.isSuccess ? snackMessages.updated : snackMessages.failUpdate}
+        severity={updating.isSuccess ? 'success' : 'error'}
       />
 
       <SnackBarComponent
-        open={deleted}
-        message={deleted ? snackMessages.deleted : snackMessages.failDelete}
-        severity={failDelete ? 'error' : 'success'}
+        open={deleting.isSuccess || deleting.isError}
+        message={deleting.isSuccess ? snackMessages.deleted : snackMessages.failDelete}
+        severity={deleting.isSuccess ? 'success' : 'error'}
       />
 
       <Modal open={openEditForm} onClose={() => setOpenEditForm(false)}>

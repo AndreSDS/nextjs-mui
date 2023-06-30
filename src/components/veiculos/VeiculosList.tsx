@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { GridColDef } from '@mui/x-data-grid'
-import { queryClient, useFetchData } from '@/lib/queryClient'
+import { queryClient, useFetchData, useMutation } from '@/lib/queryClient'
 import { createVeiculo, getVeiculos } from '@/resources/veiculo'
 import { Veiculo } from '@/utils/types'
 import { Modal } from '@/components/Modal'
@@ -10,6 +10,8 @@ import { DataListComponent } from '@/components/DataList'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { VeiculoForm } from '@/components/veiculos/VeiculoForm'
 import { VeiculoDetails } from '@/components/veiculos/VeiculoDetails'
+import { Box } from '@mui/material'
+import { SnackBarComponent } from '../SnackBarComponent'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID' },
@@ -45,14 +47,19 @@ export function VeiculosList() {
     dataType: {} as Veiculo,
   })
 
+  const creating = useMutation(['veiculos'], createVeiculo, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['veiculos'])
+      setOpenVeiculoForm(false)
+    },
+  })
+
   const handleCreateVeiculo = async (data: Veiculo) => {
     try {
       if (!data.marcaModelo) data.marcaModelo = ''
       if (!data.placa) data.placa = ''
 
-      const response = await createVeiculo(data)
-      queryClient.invalidateQueries(['veiculos'])
-      setOpenVeiculoForm(false)
+      await creating.mutateAsync(data)
     } catch (error) {
       const { response } = error as any
       console.log(response)
@@ -69,7 +76,24 @@ export function VeiculosList() {
   }
 
   return (
-    <>
+    <Box
+      display="flex"
+      flexDirection="column"
+      height="100%"
+      width="100%"
+      alignItems="center"
+      justifyContent="flex-start"
+    >
+      <SnackBarComponent
+        open={creating.isSuccess || creating.isError}
+        message={
+          creating.isSuccess
+            ? 'Veículo cadastrado com sucesso!'
+            : 'Error ao cadastrar veículo!'
+        }
+        severity={creating.isSuccess ? 'success' : 'error'}
+      />
+
       <Modal open={openVeiculoForm} onClose={() => setOpenVeiculoForm(false)}>
         <VeiculoForm
           titleForm="Cadastrar Veículo"
@@ -98,6 +122,6 @@ export function VeiculosList() {
         data={veiculos}
         columns={columns}
       />
-    </>
+    </Box>
   )
 }

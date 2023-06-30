@@ -1,43 +1,43 @@
 'use client'
 
-import { useState } from 'react'
 import { Box, Divider, Paper, Stack, Typography } from '@mui/material'
 import { Alarm, AlarmOn, Place, WhereToVote } from '@mui/icons-material'
-import { getStoredItem, queryClient, useMutation } from '@/lib/queryClient'
-import {
-  deleteDeslocamento,
-  encerrarDeslocamento,
-} from '@/resources/deslocamentos'
+import { getStoredItem } from '@/lib/queryClient'
 import {
   Cliente,
   Condutor,
+  Deslocamento,
   DeslocamentoDetails,
-  DeslocamentoEdit,
   Veiculo,
 } from '@/utils/types'
-import { Modal } from '@/components/Modal'
-import { DeslocamentoEditForm } from '@/components/deslocamentos/DeslocamentoEditForm'
 import { ButtonComponent } from '@/components/ButtonComponent'
-import { SnackBarComponent } from '@/components/SnackBarComponent'
 
 type Props = {
-  id: number
-  handleClose: () => void
+  deslocamento: Deslocamento
+  openEditForm: () => void
+  onDelete: () => void
+  isDeleting: boolean
 }
 
-export function DeslocamentoDetail({ id, handleClose }: Props) {
-  const [openEditForm, setOpenEditForm] = useState(false)
-  const deslocamentoDetails = getStoredItem(
-    'deslocamentos',
-    id,
-  ) as DeslocamentoDetails
-  const cliente = getStoredItem('clientes', id) as Cliente
-  const condutor = getStoredItem('condutores', id) as Condutor
-  const veiculo = getStoredItem('veiculos', id) as Veiculo
+export function DeslocamentoDetail({
+  deslocamento,
+  onDelete,
+  openEditForm,
+  isDeleting = false,
+}: Props) {
+  const cliente = getStoredItem('clientes', deslocamento.idCliente) as Cliente
+  const condutor = getStoredItem(
+    'condutores',
+    deslocamento.idCondutor,
+  ) as Condutor
+  const veiculo = getStoredItem('veiculos', deslocamento.idVeiculo) as Veiculo
 
-  deslocamentoDetails.nomeCliente = cliente.nome
-  deslocamentoDetails.nomeCondutor = condutor.nome
-  deslocamentoDetails.nomeVeiculo = veiculo.marcaModelo
+  const deslocamentoDetails = {
+    ...deslocamento,
+    nomeCliente: cliente.nome,
+    nomeCondutor: condutor.nome,
+    nomeVeiculo: veiculo.marcaModelo,
+  } as DeslocamentoDetails
 
   const {
     kmInicial,
@@ -52,94 +52,32 @@ export function DeslocamentoDetail({ id, handleClose }: Props) {
     nomeVeiculo,
   } = deslocamentoDetails
 
-  const afterAction = () => {
-    queryClient.invalidateQueries(['deslocamentos'])
-    setOpenEditForm(false)
-  }
-
-  const {
-    mutateAsync: updating,
-    isSuccess: updated,
-    error: failUpdate,
-  } = useMutation(['deslocamentos'], encerrarDeslocamento, {
-    onSuccess: () => {
-      afterAction()
-    },
-  })
-
-  const {
-    mutateAsync: deleting,
-    isSuccess: deleted,
-    error: failDelete,
-  } = useMutation(['deslocamentos'], deleteDeslocamento, {
-    onSuccess: () => {
-      afterAction()
-      handleClose()
-    },
-  })
-
-  const onDelete = async () => {
-    try {
-      await deleting(id)
-    } catch (error) {
-      const { response } = error as any
-      console.log(response.data, response.status)
-    }
-  }
-
-  const handleCncerrarDeslocamento = async (deslocamento: DeslocamentoEdit) => {
-    try {
-      if (!deslocamento.fimDeslocamento) {
-        deslocamento.fimDeslocamento = new Date().toISOString()
-      }
-      const deslocamentoEdit: DeslocamentoEdit = {
-        id,
-        ...deslocamento,
-      }
-
-      await updating(deslocamentoEdit)
-    } catch (error) {
-      const { response } = error as any
-      console.log(response.data, response.status)
-    }
-  }
-
-  const snackMessages = {
-    updated: 'Deslocamento encerrado com sucesso!',
-    deleted: 'Deslocamento deletado com sucesso!',
-    failUpdate: 'Erro ao encerrar deslocamento!',
-    failDelete: 'Erro ao deletar deslocamento!',
-  }
-
   return (
     <Box
       display="flex"
-      alignItems="flex-start"
-      justifyContent="center"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="flex-start"
       height="100%"
       width="100%"
     >
-      <SnackBarComponent
-        open={updated}
-        message={updated ? snackMessages.updated : snackMessages.failUpdate}
-        severity={failUpdate ? 'error' : 'success'}
-      />
-
-      <SnackBarComponent
-        open={deleted}
-        message={deleted ? snackMessages.deleted : snackMessages.failDelete}
-        severity={failDelete ? 'error' : 'success'}
-      />
-
-      <Modal open={openEditForm} onClose={() => setOpenEditForm(false)}>
-        <DeslocamentoEditForm onSubmit={handleCncerrarDeslocamento} />
-      </Modal>
-
       <Paper
         sx={{
           padding: '1.5rem',
         }}
       >
+        <Typography
+          variant="h3"
+          sx={{
+            fontSize: '1.25rem',
+            lineHeight: 1.2,
+            fontWeight: 600,
+            mb: 1,
+          }}
+        >
+          Deslocamento
+        </Typography>
+
         <Stack spacing={2}>
           <Typography variant="body1">
             Nome do Cliente: {nomeCliente}
@@ -225,15 +163,16 @@ export function DeslocamentoDetail({ id, handleClose }: Props) {
             textButton="Deletar"
             hasIcon="delete"
             onClick={onDelete}
-            disabled={false}
+            disabled={isDeleting}
           />
 
-          <ButtonComponent
-            textButton="Encerrar"
-            hasIcon="edit"
-            onClick={() => setOpenEditForm(true)}
-            disabled={false}
-          />
+          {kmFinal ? null : (
+            <ButtonComponent
+              textButton="Encerrar"
+              hasIcon="edit"
+              onClick={openEditForm}
+            />
+          )}
         </Stack>
       </Paper>
     </Box>
