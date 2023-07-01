@@ -1,4 +1,5 @@
 import { Inter } from 'next/font/google'
+import { Providers } from '@/components/Providers'
 import { MainLayout } from '@/components/MainLayout'
 import { Sidebar } from '@/components/Sidebar'
 
@@ -19,24 +20,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <MainLayout>
-          <main>
-            <Sidebar />
+        <Providers>
+          <MainLayout>
+            <main>
+              <Sidebar />
 
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100vh',
-                width: '100%',
-              }}
-            >
-              {children}
-            </div>
-          </main>
-        </MainLayout>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100vh',
+                  width: '100%',
+                }}
+              >
+                {children}
+              </div>
+            </main>
+          </MainLayout>
+        </Providers>
       </body>
     </html>
   )

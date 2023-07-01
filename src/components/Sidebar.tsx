@@ -13,6 +13,7 @@ import {
   ListItemIcon,
   ListItemText,
   ListItemButton,
+  Avatar,
 } from '@mui/material'
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles'
 import {
@@ -67,7 +68,7 @@ const MenuItemComponent = ({
   onClick,
 }: ItemProps) => {
   const pathname = usePathname()
-  const selected = pathname === to || pathname === `${to}/[id]`
+  const selected = pathname === to
 
   return (
     <ListItem disablePadding sx={{ display: 'block' }}>
@@ -112,8 +113,6 @@ export function Sidebar({}: Props) {
     route.push(routeName)
   }
 
-  // https://www.youtube.com/watch?v=wYpCWwD1oz0&t=19s
-
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar position="fixed" open={open}>
@@ -146,6 +145,8 @@ export function Sidebar({}: Props) {
             {theme.direction === 'rtl' ? <ChevronRight /> : <ChevronLeft />}
           </IconButton>
         </Box>
+
+        <Avatar />
 
         <List>
           {menuNavItems.map((item) => (

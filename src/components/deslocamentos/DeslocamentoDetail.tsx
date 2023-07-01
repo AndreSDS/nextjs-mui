@@ -11,6 +11,7 @@ import {
   Veiculo,
 } from '@/utils/types'
 import { ButtonComponent } from '@/components/ButtonComponent'
+import { TypographyWithIcon } from '@/components/deslocamentos/TypographyWithIcon'
 
 type Props = {
   deslocamento: Deslocamento
@@ -59,11 +60,12 @@ export function DeslocamentoDetail({
       alignItems="center"
       justifyContent="flex-start"
       height="100%"
-      width="100%"
+      width="400px"
     >
       <Paper
         sx={{
           padding: '1.5rem',
+          width: '100%',
         }}
       >
         <Typography
@@ -96,53 +98,29 @@ export function DeslocamentoDetail({
           <Divider />
 
           <Stack direction="row" spacing={2}>
-            <Box display="flex" alignItems="center" justifyContent="flex-start">
-              <Place
-                sx={{
-                  marginRight: '0.5rem',
-                }}
-              />
-              <Typography variant="body1">Km Inicial: {kmInicial}</Typography>
-            </Box>
+            <TypographyWithIcon
+              text={`Km Inicial: ${kmInicial}`}
+              icon={<Place />}
+            />
 
-            <Box display="flex" alignItems="center" justifyContent="flex-start">
-              <WhereToVote
-                sx={{
-                  marginRight: '0.5rem',
-                }}
-              />
-              <Typography variant="body1">Km Final: {kmFinal}</Typography>
-            </Box>
+            <TypographyWithIcon
+              text={`Km Final: ${kmFinal}`}
+              icon={<WhereToVote />}
+            />
           </Stack>
 
           <Divider />
 
           <Stack direction="row" spacing={2}>
-            <Box display="flex" alignItems="center" justifyContent="flex-start">
-              <Alarm
-                sx={{
-                  marginRight: '0.5rem',
-                }}
-              />
-              <Typography variant="body1">
-                Início: {inicioDeslocamento}
-              </Typography>
-            </Box>
+            <TypographyWithIcon
+              text={`Início: ${inicioDeslocamento}`}
+              icon={<Alarm />}
+            />
 
-            <Typography variant="body1">
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="flex-start"
-              >
-                <AlarmOn
-                  sx={{
-                    marginRight: '0.5rem',
-                  }}
-                />
-                Fim: {fimDeslocamento || 'em andamento'}
-              </Box>
-            </Typography>
+            <TypographyWithIcon
+              text={`Fim: ${fimDeslocamento}`}
+              icon={<AlarmOn />}
+            />
           </Stack>
 
           <Divider />

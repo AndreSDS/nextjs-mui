@@ -6,18 +6,14 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.tz.setDefault('America/Sao_Paulo');
 
-export function formatISODateToUTC(date: string | Date) {
-    return dayjs(date).format()
+export function formatDate(date: string | Date) {
+    return dayjs(date).format('DD/MM/YY')
 }
 
-export function formatDateToString(date: string | Date) {
-    const newDate = new Date(date)
+export function transformToISO(date: string | Date) {
+    return dayjs(date).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
+}
 
-    const formatedDate = Intl.DateTimeFormat('pt-BR', {
-        hour: 'numeric',
-        minute: 'numeric',
-        hour12: true
-    }).format(newDate)
-
-    return formatedDate;
+export function extractHour(date: string | Date) {
+    return dayjs(date).format('HH:mm A')
 }

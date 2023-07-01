@@ -14,7 +14,7 @@ export function CondutorDetails({ condutor, openEditForm, onDelete }: Props) {
   const {
     nome,
     numeroHabilitacao,
-    catergoriaHabilitacao,
+    categoriaHabilitacao,
     vencimentoHabilitacao,
   } = condutor
 
@@ -30,7 +30,7 @@ export function CondutorDetails({ condutor, openEditForm, onDelete }: Props) {
       {!condutor ? null : (
         <Profile
           nome={nome}
-          numeroDocumento={`${numeroHabilitacao} - ${catergoriaHabilitacao}`}
+          numeroDocumento={`${numeroHabilitacao} - ${categoriaHabilitacao}`}
           openEditForm={openEditForm}
           onDelete={onDelete}
         >
@@ -57,7 +57,7 @@ export function CondutorDetails({ condutor, openEditForm, onDelete }: Props) {
             <Typography variant="h4" fontWeight={600} fontSize="1rem">
               Categoria:{' '}
               <Typography variant="body2" component="span">
-                {catergoriaHabilitacao}
+                {categoriaHabilitacao}
               </Typography>
             </Typography>
 

@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { formatDateToString } from "@/utils/formatDate";
+import { extractHour, formatDate } from "@/utils/formatDate";
 import { Deslocamento, DeslocamentoCreate, DeslocamentoEdit } from "@/utils/types";
 
 export async function getDeslocamentos(): Promise<Deslocamento[]> {
@@ -12,10 +12,11 @@ export async function getDeslocamentos(): Promise<Deslocamento[]> {
     const { data } = response;
 
     const deslocamentos = data.map((deslocamento: Deslocamento) => {
+        const { inicioDeslocamento, fimDeslocamento } = deslocamento;
         return {
             ...deslocamento,
-            inicioDeslocamento: formatDateToString(deslocamento.inicioDeslocamento),
-            fimDeslocamento: deslocamento ? formatDateToString(deslocamento.fimDeslocamento) : '',
+            inicioDeslocamento: extractHour(inicioDeslocamento),
+            fimDeslocamento: fimDeslocamento ? extractHour(fimDeslocamento) : null,
         }
     })
 

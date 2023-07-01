@@ -37,7 +37,6 @@ export function Header({
           variant="h5"
           fontSize="1rem"
           lineHeight={1.2}
-          color={colors.grey[400]}
         >
           {subTitle}
         </Typography>

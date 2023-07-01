@@ -1,7 +1,5 @@
-import { useState, useMemo } from "react";
 import { Inter } from 'next/font/google';
 import { createTheme } from '@mui/material/styles';
-import { red } from '@mui/material/colors';
 import { PaletteMode } from '@mui/material';
 
 export const inter = Inter({
@@ -11,7 +9,7 @@ export const inter = Inter({
     fallback: ['Helvetica', 'Arial', 'sans-serif'],
 });
 
-export const tokens = (mode: PaletteMode) => ({
+const paletteTokens = (mode: PaletteMode) => ({
     palette: {
         mode,
         ...(mode === 'dark'
@@ -135,8 +133,4 @@ export const tokens = (mode: PaletteMode) => ({
     }
 });
 
-const theme = createTheme(
-    tokens('dark'),
-);
-
-export { theme };
+export const theme = (mode: PaletteMode) => createTheme(paletteTokens(mode));

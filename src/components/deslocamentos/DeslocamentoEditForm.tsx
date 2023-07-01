@@ -1,22 +1,27 @@
 import { useForm } from 'react-hook-form'
-import { Stack, TextField } from '@mui/material'
-import { DeslocamentoEdit } from '@/utils/types'
-import { formatISODateToUTC } from '@/utils/formatDate'
+import { Box, Stack, TextField } from '@mui/material'
+import { Alarm, Place } from '@mui/icons-material'
+import { getStoredItem } from '@/lib/queryClient'
+import { Deslocamento, DeslocamentoEdit } from '@/utils/types'
+import { transformToISO } from '@/utils/formatDate'
 import { Form } from '@/components/Form'
 import { DatePickerComponent } from '@/components/DatePicker'
+import { TypographyWithIcon } from '@/components/deslocamentos/TypographyWithIcon'
 
 type Props = {
+  id: number
   onSubmit: (data: DeslocamentoEdit) => void
 }
 
-export function DeslocamentoEditForm({ onSubmit }: Props) {
+export function DeslocamentoEditForm({ id, onSubmit }: Props) {
   const {
     register,
     handleSubmit,
     setValue,
-    getValues,
     formState: { errors, isSubmitting },
   } = useForm<DeslocamentoEdit>()
+
+  const deslocamento = getStoredItem('deslocamentos', id) as Deslocamento
 
   return (
     <Form
@@ -26,6 +31,18 @@ export function DeslocamentoEditForm({ onSubmit }: Props) {
       isLoading={isSubmitting}
       onSubmit={handleSubmit(onSubmit)}
     >
+      <Stack direction="row" spacing={2}>
+        <TypographyWithIcon
+          text={`km Inicial: ${deslocamento.kmInicial}`}
+          icon={<Place />}
+        />
+
+        <TypographyWithIcon
+          text={`Início: ${deslocamento.inicioDeslocamento}`}
+          icon={<Alarm />}
+        />
+      </Stack>
+
       <Stack direction="row" spacing={2}>
         <TextField
           {...register('kmFinal', {
@@ -40,7 +57,7 @@ export function DeslocamentoEditForm({ onSubmit }: Props) {
         <DatePickerComponent
           isHour
           onChange={(value) =>
-            setValue('fimDeslocamento', formatISODateToUTC(value))
+            setValue('fimDeslocamento', transformToISO(value))
           }
         />
       </Stack>

@@ -139,7 +139,7 @@ export function CondutoresList() {
           <CondutorForm
             titleForm="Cadastrar novo condutor"
             subTitleForm="Preencha os dados do condutor"
-            onSubmit={handleDeleteCondutor}
+            onSubmit={handleCreateCondutor}
           />
         )}
       </>

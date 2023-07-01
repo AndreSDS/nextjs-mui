@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { formatDate, transformToISO } from "@/utils/formatDate";
 import { Condutor } from "@/utils/types";
 
 export async function getCondutores(): Promise<Condutor[]> {
@@ -8,9 +9,14 @@ export async function getCondutores(): Promise<Condutor[]> {
         return [];
     }
 
-    const { data } = response
+    const condutores = response.data.map((condutor: Condutor) => {
+        return {
+            ...condutor,
+            vencimentoHabilitacao: formatDate(condutor.vencimentoHabilitacao),
+        }
+    })
 
-    return data;
+    return condutores;
 }
 
 export async function getCondutorById(id: string): Promise<Condutor> {
@@ -26,6 +32,10 @@ export async function getCondutorById(id: string): Promise<Condutor> {
 }
 
 export async function createCondutor(condutor: Condutor): Promise<number> {
+    if(!condutor.vencimentoHabilitacao) {
+        condutor.vencimentoHabilitacao = transformToISO(new Date())
+    }
+
     const response = await api.post('/Condutor', condutor)
 
     if (response.status !== 200) {
@@ -38,7 +48,7 @@ export async function createCondutor(condutor: Condutor): Promise<number> {
 export async function updateCondutor(condutor: Condutor): Promise<number> {
     const condutorToUpdate = {
         id: condutor.id,
-        categoriaHabilitacao: condutor.catergoriaHabilitacao,
+        categoriaHabilitacao: condutor.categoriaHabilitacao,
         vencimentoHabilitacao: condutor.vencimentoHabilitacao,
     }
 

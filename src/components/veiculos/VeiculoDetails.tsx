@@ -76,7 +76,7 @@ export function VeiculoDetails({ id, handleClose }: Props) {
       alignItems="flex-start"
       justifyContent="center"
       height="100%"
-      width="100%"
+      width="330px"
     >
       <SnackBarComponent
         open={updating.isSuccess || updating.isError}
@@ -103,6 +103,7 @@ export function VeiculoDetails({ id, handleClose }: Props) {
       <Paper
         sx={{
           padding: '1.5rem',
+          width: '100%',
         }}
       >
         <Stack spacing={2}>
@@ -122,8 +123,6 @@ export function VeiculoDetails({ id, handleClose }: Props) {
 
           <Typography variant="body1">Km Atual: {kmAtual}</Typography>
         </Stack>
-
-        <Divider />
 
         <Stack direction="row" justifyContent="flex-end" spacing={3}>
           <ButtonComponent

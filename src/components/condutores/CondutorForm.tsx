@@ -5,6 +5,7 @@ import { MenuItem, Stack, TextField } from '@mui/material'
 import { Condutor } from '@/utils/types'
 import { Form } from '@/components/Form'
 import { DatePickerComponent } from '../DatePicker'
+import { transformToISO } from '@/utils/formatDate'
 
 const categoryOptions = [
   {
@@ -42,7 +43,6 @@ export function CondutorForm({
     register,
     handleSubmit,
     setValue,
-    getValues,
     formState: { errors, isSubmitting },
   } = useForm<Condutor>({
     defaultValues: initialValues,
@@ -72,12 +72,12 @@ export function CondutorForm({
 
       <Stack spacing={2} direction="row">
         <TextField
-          {...register('catergoriaHabilitacao', {
+          {...register('categoriaHabilitacao', {
             required: !isEditing,
           })}
-          error={!!errors.catergoriaHabilitacao}
+          error={!!errors.categoriaHabilitacao}
           sx={{ flex: 0.5 }}
-          id="catergoriaHabilitacao"
+          id="categoriaHabilitacao"
           label="Categoria"
         />
 
@@ -96,7 +96,7 @@ export function CondutorForm({
 
       <DatePickerComponent
         label="Vencimento da Habilitação"
-        onChange={(value) => setValue('vencimentoHabilitacao', value)}
+        onChange={(value) => setValue('vencimentoHabilitacao', transformToISO(value))}
       />
     </Form>
   )

@@ -14,8 +14,8 @@ export type Condutor = {
     id?: number;
     nome: string;
     numeroHabilitacao: string;
-    catergoriaHabilitacao: string;
-    vencimentoHabilitacao: String;
+    categoriaHabilitacao: string;
+    vencimentoHabilitacao: string;
 }
 
 export type Deslocamento = {

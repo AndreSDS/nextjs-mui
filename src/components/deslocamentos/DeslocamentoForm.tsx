@@ -3,7 +3,7 @@
 import { Box, MenuItem, Stack, TextField } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { Cliente, Condutor, DeslocamentoCreate, Veiculo } from '@/utils/types'
-import { formatISODateToUTC } from '@/utils/formatDate'
+import { transformToISO } from '@/utils/formatDate'
 import { getStoredData } from '@/lib/queryClient'
 import { preFetchData } from '@/lib/queryClient'
 import { getClientes } from '@/resources/cliente'
@@ -69,7 +69,7 @@ export function DeslocamentoForm({ onSubmit }: Props) {
           <DatePickerComponent
             isHour
             onChange={(value) =>
-              setValue('inicioDeslocamento', formatISODateToUTC(value))
+              setValue('inicioDeslocamento', transformToISO(value))
             }
           />
         </Stack>

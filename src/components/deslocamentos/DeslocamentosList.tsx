@@ -206,7 +206,7 @@ export function DeslocamentosList() {
       </Modal>
 
       <Modal open={openEditForm} onClose={() => setOpenEditForm(false)}>
-        <DeslocamentoEditForm onSubmit={handleUpdateDeslocamento} />
+        <DeslocamentoEditForm id={deslocamentoId} onSubmit={handleUpdateDeslocamento} />
       </Modal>
 
       <Modal

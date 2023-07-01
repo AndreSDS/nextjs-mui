@@ -1,17 +1,27 @@
 'use client'
 
+import { useCustomTheme } from '@/hooks/useCustomTheme'
 import {
   LightModeOutlined,
   DarkModeOutlined,
   PersonOutlined,
 } from '@mui/icons-material'
 import { Box, IconButton } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 
-type Props = {}
+export function Topbar() {
+  const { customTheme: theme, toggleTheme } = useCustomTheme()
 
-export function Topbar({}: Props) {
-  const theme = useTheme()
+  const handleThemeChange = () => {
+    if (theme.palette.mode === 'dark') {
+      toggleTheme('light')
+    }
+
+    if (theme.palette.mode === 'light') {
+      toggleTheme('dark')
+    }
+  }
+
+  const isDarkMode = theme.palette.mode === 'dark'
 
   return (
     <Box
@@ -22,8 +32,8 @@ export function Topbar({}: Props) {
       p={2}
     >
       <Box display="flex">
-        <IconButton type="button" sx={{ p: 1 }}>
-          {theme.palette.mode === 'dark' ? (
+        <IconButton onClick={handleThemeChange} type="button" sx={{ p: 1 }}>
+          {isDarkMode ? (
             <LightModeOutlined />
           ) : (
             <DarkModeOutlined />
